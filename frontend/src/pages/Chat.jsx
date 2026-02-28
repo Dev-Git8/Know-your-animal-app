@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import { useChatHistory } from "@/hooks/useChatHistory";
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/animal-chat`;
+const CHAT_URL = `${import.meta.env.VITE_API_URL}/chat`;
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -104,7 +104,6 @@ const Chat = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({ messages: newMessages }),
       });
@@ -223,11 +222,10 @@ const Chat = () => {
                   </div>
                 )}
                 <div
-                  className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                    msg.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-foreground border border-border"
-                  }`}
+                  className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.role === "user"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-foreground border border-border"
+                    }`}
                 >
                   {msg.role === "assistant" ? (
                     <div className="prose prose-sm max-w-none [&>p]:mb-2 [&>p:last-child]:mb-0 [&_strong]:text-primary [&_li]:text-foreground">
