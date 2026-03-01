@@ -1,11 +1,25 @@
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Heart, Shield, Globe, BookOpen, Users, Stethoscope } from "lucide-react";
+import { Heart, Shield, Globe, BookOpen, Users, Stethoscope, MapPin, Phone, Mail, Clock, Send } from "lucide-react";
 import aboutCow from "@/assets/about-cow.jpg";
 import aboutGroup from "@/assets/about-animals-group.jpg";
-import aboutVet from "@/assets/about-vet.jpg";
 
 const About = () => {
+  const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSubmitted(true);
+    setFormData({ name: "", email: "", subject: "", message: "" });
+    setTimeout(() => setSubmitted(false), 4000);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -86,50 +100,161 @@ const About = () => {
           </div>
         </section>
 
-        {/* How It Works */}
-        <section className="py-20">
-          <div className="container mx-auto px-4 max-w-5xl">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-              <div className="rounded-2xl overflow-hidden shadow-lg order-2 md:order-1">
-                <img
-                  src={aboutVet}
-                  alt="Veterinarian caring for buffalo"
-                  className="w-full h-72 md:h-80 object-cover"
-                  loading="lazy"
-                />
-              </div>
-              <div className="order-1 md:order-2">
-                <span className="text-sm font-semibold uppercase tracking-widest text-primary mb-2 block">
-                  How It Works
+        {/* ── Contact Us ─────────────────────────────────────────── */}
+        <section className="relative overflow-hidden" style={{ background: "#1a1612" }}>
+          <div className="container mx-auto px-4 py-20 max-w-6xl">
+            <div className="grid md:grid-cols-2 gap-12 lg:gap-20">
+
+              {/* Left — Get In Touch */}
+              <div className="flex flex-col justify-center">
+                <span
+                  className="text-sm font-semibold uppercase tracking-[0.2em] mb-3 flex items-center gap-2"
+                  style={{ color: "#c5975b" }}
+                >
+                  <span className="w-6 h-px" style={{ background: "#c5975b" }} />
+                  Keep Close
                 </span>
-                <h2 className="font-display text-3xl font-bold text-foreground mb-5">
-                  Simple. Fast. Reliable.
+                <h2 className="font-display text-4xl font-bold text-white mb-5">
+                  Get In Touch
                 </h2>
-                <ol className="space-y-4 text-muted-foreground">
-                  <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">1</span>
-                    <span><strong className="text-foreground">Choose your language</strong> — pick from 12+ Indian languages using the dropdown in the navbar.</span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">2</span>
-                    <span><strong className="text-foreground">Browse or search</strong> — select an animal to view its common diseases, or ask our AI chatbot directly.</span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">3</span>
-                    <span><strong className="text-foreground">Get answers</strong> — read about symptoms, causes, treatments, and prevention in your own language.</span>
-                  </li>
-                </ol>
+                <p className="text-[#a09889] leading-relaxed mb-8 max-w-md">
+                  Have questions about animal healthcare, want to suggest a feature, or just want to say hello? We'd love to hear from you.
+                </p>
+
+                <div className="grid grid-cols-2 gap-6 mb-8">
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#c5975b" }} />
+                    <div>
+                      <p className="text-white text-sm font-medium">Location</p>
+                      <p className="text-[#a09889] text-xs mt-0.5">Bengaluru, Karnataka, India</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Phone className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#c5975b" }} />
+                    <div>
+                      <p className="text-white text-sm font-medium">Phone</p>
+                      <p className="text-[#a09889] text-xs mt-0.5">+91 1800 XXX XXXX</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#c5975b" }} />
+                    <div>
+                      <p className="text-white text-sm font-medium">Email</p>
+                      <p className="text-[#a09889] text-xs mt-0.5">support@knowyouranimal.in</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#c5975b" }} />
+                    <div>
+                      <p className="text-white text-sm font-medium">Hours</p>
+                      <p className="text-[#a09889] text-xs mt-0.5">Mon – Sat: 9AM – 6PM</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right — Form */}
+              <div>
+                <h3 className="text-2xl font-display font-bold text-white mb-2">
+                  Your Details
+                </h3>
+                <p className="text-[#a09889] text-sm mb-7">
+                  Let us know how to get back to you.
+                </p>
+
+                {submitted && (
+                  <div className="mb-5 px-4 py-3 rounded-lg text-sm font-medium" style={{ background: "rgba(197,151,91,0.15)", color: "#c5975b", border: "1px solid rgba(197,151,91,0.3)" }}>
+                    ✓ Thank you! We'll get back to you soon.
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider text-[#a09889] mb-2 font-medium">
+                        Name <span style={{ color: "#c5975b" }}>*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="Your name"
+                        required
+                        className="w-full px-4 py-2.5 rounded-none text-sm text-white placeholder:text-[#6b6057] focus:outline-none transition-colors"
+                        style={{ background: "transparent", borderBottom: "1px solid #3d352c" }}
+                        onFocus={(e) => e.target.style.borderBottomColor = "#c5975b"}
+                        onBlur={(e) => e.target.style.borderBottomColor = "#3d352c"}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider text-[#a09889] mb-2 font-medium">
+                        Email Address <span style={{ color: "#c5975b" }}>*</span>
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="email@example.com"
+                        required
+                        className="w-full px-4 py-2.5 rounded-none text-sm text-white placeholder:text-[#6b6057] focus:outline-none transition-colors"
+                        style={{ background: "transparent", borderBottom: "1px solid #3d352c" }}
+                        onFocus={(e) => e.target.style.borderBottomColor = "#c5975b"}
+                        onBlur={(e) => e.target.style.borderBottomColor = "#3d352c"}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-[#a09889] mb-2 font-medium">
+                      Subject <span style={{ color: "#c5975b" }}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="subject"
+                      value={formData.subject}
+                      onChange={handleChange}
+                      placeholder="Subject"
+                      required
+                      className="w-full px-4 py-2.5 rounded-none text-sm text-white placeholder:text-[#6b6057] focus:outline-none transition-colors"
+                      style={{ background: "transparent", borderBottom: "1px solid #3d352c" }}
+                      onFocus={(e) => e.target.style.borderBottomColor = "#c5975b"}
+                      onBlur={(e) => e.target.style.borderBottomColor = "#3d352c"}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-[#a09889] mb-2 font-medium">
+                      Comments / Questions <span style={{ color: "#c5975b" }}>*</span>
+                    </label>
+                    <textarea
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      placeholder="Your message..."
+                      required
+                      rows={4}
+                      className="w-full px-4 py-2.5 rounded-none text-sm text-white placeholder:text-[#6b6057] focus:outline-none transition-colors resize-none"
+                      style={{ background: "transparent", borderBottom: "1px solid #3d352c" }}
+                      onFocus={(e) => e.target.style.borderBottomColor = "#c5975b"}
+                      onBlur={(e) => e.target.style.borderBottomColor = "#3d352c"}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="flex items-center gap-2 px-7 py-3 text-sm font-semibold uppercase tracking-wider transition-all duration-300 hover:opacity-90"
+                    style={{ background: "#2a231a", color: "#c5975b", border: "1px solid #3d352c" }}
+                    onMouseEnter={(e) => { e.target.style.background = "#c5975b"; e.target.style.color = "#1a1612"; }}
+                    onMouseLeave={(e) => { e.target.style.background = "#2a231a"; e.target.style.color = "#c5975b"; }}
+                  >
+                    <Send className="h-4 w-4" />
+                    Contact Us
+                  </button>
+                </form>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* Disclaimer */}
-        <section className="py-14 bg-muted/40">
-          <div className="container mx-auto px-4 max-w-3xl text-center">
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              <strong className="text-foreground">Disclaimer:</strong> The information on this platform is for educational purposes only. Always consult a qualified veterinarian for proper diagnosis and treatment. Do not self-medicate your animals based on this information alone.
-            </p>
           </div>
         </section>
       </main>

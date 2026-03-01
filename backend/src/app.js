@@ -11,7 +11,19 @@ const app = express();
 // ── Global Middleware ────────────────────────────────────────────────
 app.use(
     cors({
-        origin: process.env.CLIENT_URL || "http://localhost:5173",
+        origin: function (origin, callback) {
+            // Allow requests with no origin (e.g. mobile apps, curl, Postman)
+            if (!origin) return callback(null, true);
+            // In production, use CLIENT_URL; in dev, allow any localhost port
+            const allowedOrigin = process.env.CLIENT_URL || "http://localhost:8080";
+            if (
+                origin === allowedOrigin ||
+                /^http:\/\/localhost:\d+$/.test(origin)
+            ) {
+                return callback(null, true);
+            }
+            callback(new Error("Not allowed by CORS"));
+        },
         credentials: true,
     })
 );

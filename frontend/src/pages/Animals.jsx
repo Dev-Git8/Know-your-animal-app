@@ -57,26 +57,27 @@ const Animals = () => {
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 md:gap-7">
               {animals.map((animal) => (
                 <Link
                   key={animal._id}
                   to={`/animals/${animal.slug}`}
                   className="group"
                 >
-                  <div className="aspect-square rounded-xl overflow-hidden bg-card border border-border shadow-sm hover:shadow-lg transition-all duration-300 hover:border-primary/50 hover:-translate-y-1">
-                    <div className="relative w-full h-full">
+                  <div className="rounded-2xl overflow-hidden bg-white border border-border/40 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5">
+                    {/* Image section */}
+                    <div className="aspect-[4/3] overflow-hidden">
                       <img
                         src={animal.image}
                         alt={animalNames[animal.slug] || animal.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-3 text-center">
-                        <h3 className="font-semibold text-white text-sm md:text-base">
-                          {animalNames[animal.slug] || animal.name}
-                        </h3>
-                      </div>
+                    </div>
+                    {/* White name section */}
+                    <div className="px-4 py-4 text-center">
+                      <h3 className="font-display text-lg font-bold text-foreground tracking-wide">
+                        {animalNames[animal.slug] || animal.name}
+                      </h3>
                     </div>
                   </div>
                 </Link>

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Send, MessageCircle, ChevronDown } from "lucide-react";
+import { Search, Send, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import heroAnimals from "@/assets/hero-animals.jpg";
+import heroDog from "@/assets/hero-dog.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { translations } from "@/data/translations";
 
@@ -32,77 +32,90 @@ const HeroSection = () => {
   ];
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background image */}
-      <div className="absolute inset-0">
-        <img
-          src={heroAnimals}
-          alt="Indian countryside"
-          className="w-full h-full object-cover scale-105"
-        />
-        <div className="hero-overlay absolute inset-0" />
-      </div>
+    <section className="relative min-h-[85vh] flex items-center bg-background overflow-hidden">
+      <div className="container mx-auto px-4">
+        <div className="grid md:grid-cols-2 gap-10 lg:gap-16 items-center">
 
-      {/* Vignette edges */}
-      <div className="absolute inset-0 pointer-events-none" style={{
-        boxShadow: 'inset 0 0 150px 60px hsl(142 20% 5% / 0.6)',
-      }} />
-
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 text-center flex flex-col items-center justify-center min-h-screen pt-16">
-        <div className="max-w-4xl mx-auto animate-slide-up">
-          <p className="uppercase tracking-[0.35em] text-sm md:text-base font-medium text-primary-foreground/70 mb-6">
-            {t.subtitle || "Your trusted companion for animal health"}
-          </p>
-
-          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold text-primary-foreground mb-10 leading-[0.95] tracking-tight">
-            {t.title}
-          </h1>
-
-          {/* Search bar */}
-          <div className="max-w-2xl mx-auto mt-4">
-            <div className="search-glass rounded-full p-2 flex items-center gap-2">
-              <div className="flex-1 flex items-center gap-3 px-4">
-                <MessageCircle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Ask anything about animal health..."
-                  className="flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground py-3"
+          {/* Left — Circular image */}
+          <div className="flex justify-center animate-fade-in">
+            <div className="relative">
+              {/* Subtle ring behind */}
+              <div
+                className="absolute -inset-3 rounded-full opacity-[0.07]"
+                style={{ background: "radial-gradient(circle, hsl(var(--primary)), transparent 70%)" }}
+              />
+              <div className="w-72 h-72 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] rounded-full overflow-hidden shadow-xl border-4 border-background">
+                <img
+                  src={heroDog}
+                  alt="Friendly dog"
+                  className="w-full h-full object-cover"
                 />
               </div>
-              <button
-                type="button"
-                onClick={handleAsk}
-                disabled={!input.trim()}
-                className="btn-hero disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                <Send className="h-4 w-4" />
-                <span className="hidden sm:inline">Ask</span>
-              </button>
             </div>
+          </div>
 
-            {/* Quick questions */}
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              {quickQuestions.map((q) => (
+          {/* Right — Text + Search */}
+          <div className="text-center md:text-left animate-slide-up">
+            <p className="uppercase tracking-[0.25em] text-sm md:text-base font-semibold text-muted-foreground mb-5">
+              Find information about animal diseases, symptoms,
+              and treatments in your preferred language
+            </p>
+
+            <h1
+              className="font-display text-6xl md:text-7xl lg:text-8xl font-bold leading-[0.9] tracking-tight mb-10"
+              style={{ color: "#1e293b" }}
+            >
+              {t.title}
+            </h1>
+
+            {/* Search bar */}
+            <div className="max-w-lg mx-auto md:mx-0">
+              <div className="flex items-center gap-2 rounded-full bg-card border border-border p-1.5 shadow-sm transition-shadow hover:shadow-md">
+                <div className="flex-1 flex items-center gap-3 px-4">
+                  <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Ask anything about animal health..."
+                    className="flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground/60 py-2.5 text-sm"
+                  />
+                </div>
                 <button
-                  key={q}
-                  onClick={() => navigate("/chat", { state: { question: q } })}
-                  className="px-4 py-2 rounded-full border border-primary-foreground/20 text-primary-foreground/80 text-sm font-medium hover:bg-primary-foreground/10 transition-colors backdrop-blur-sm"
+                  type="button"
+                  onClick={handleAsk}
+                  disabled={!input.trim()}
+                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ background: "#1e293b", color: "#ffffff" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.8"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
                 >
-                  {q}
+                  <Send className="h-3.5 w-3.5" />
+                  Ask
                 </button>
-              ))}
+              </div>
+
+              {/* Quick questions */}
+              <div className="mt-5 flex flex-wrap justify-center md:justify-start gap-2">
+                {quickQuestions.map((q) => (
+                  <button
+                    key={q}
+                    onClick={() => navigate("/chat", { state: { question: q } })}
+                    className="px-3.5 py-1.5 rounded-full border border-border text-muted-foreground text-xs font-medium hover:bg-muted hover:text-foreground transition-colors duration-200"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-float">
-          <ChevronDown className="h-6 w-6 text-primary-foreground/50" />
-        </div>
+      {/* Scroll indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-float">
+        <ChevronDown className="h-5 w-5 text-muted-foreground/40" />
       </div>
     </section>
   );

@@ -9,35 +9,35 @@
 @layer base {
   :root {
     /* Warm earth tones with forest greens */
-    --background: 45 30% 97%;
+    --background: 40 10% 91%;
     --foreground: 30 25% 15%;
 
-    --card: 45 40% 98%;
+    --card: 40 10% 94%;
     --card-foreground: 30 25% 15%;
 
-    --popover: 45 40% 98%;
+    --popover: 40 10% 94%;
     --popover-foreground: 30 25% 15%;
 
     /* Forest green primary */
     --primary: 142 45% 32%;
-    --primary-foreground: 45 30% 97%;
+    --primary-foreground: 40 10% 96%;
 
     /* Warm amber secondary */
     --secondary: 38 92% 50%;
     --secondary-foreground: 30 25% 15%;
 
-    --muted: 45 20% 90%;
+    --muted: 40 8% 86%;
     --muted-foreground: 30 15% 45%;
 
     /* Earth accent */
     --accent: 24 70% 45%;
-    --accent-foreground: 45 30% 97%;
+    --accent-foreground: 40 10% 96%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 45 30% 97%;
+    --destructive-foreground: 40 10% 96%;
 
-    --border: 45 25% 85%;
-    --input: 45 25% 85%;
+    --border: 40 8% 82%;
+    --input: 40 8% 82%;
     --ring: 142 45% 32%;
 
     --radius: 0.75rem;
@@ -45,7 +45,7 @@
     /* Custom gradients */
     --gradient-hero: linear-gradient(135deg, hsl(142 45% 32% / 0.9) 0%, hsl(142 35% 25% / 0.95) 100%);
     --gradient-warm: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(24 70% 45%) 100%);
-    --gradient-nature: linear-gradient(180deg, hsl(142 45% 32% / 0.1) 0%, hsl(45 30% 97%) 100%);
+    --gradient-nature: linear-gradient(180deg, hsl(142 45% 32% / 0.1) 0%, hsl(40 10% 91%) 100%);
 
     /* Shadows */
     --shadow-soft: 0 4px 20px -4px hsl(30 25% 15% / 0.1);
@@ -113,19 +113,20 @@
     font-family: 'Poppins', sans-serif;
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: 'Playfair Display', serif;
   }
 }
 
 @layer components {
   .hero-overlay {
-    background: linear-gradient(
-      to bottom,
-      hsl(142 30% 8% / 0.55) 0%,
-      hsl(142 25% 6% / 0.7) 40%,
-      hsl(30 15% 5% / 0.85) 100%
-    );
+    background: linear-gradient(to bottom,
+        hsl(142 30% 8% / 0.55) 0%,
+        hsl(142 25% 6% / 0.7) 40%,
+        hsl(30 15% 5% / 0.85) 100%);
   }
 
   .search-glass {
@@ -194,6 +195,44 @@
     @apply flex h-14 w-14 items-center justify-center rounded-xl;
     background: var(--gradient-nature);
   }
+
+  /* ── Leaflet Map Overrides ──────────────────────────── */
+  .leaflet-container {
+    font-family: 'Poppins', sans-serif !important;
+    z-index: 1;
+  }
+
+  .leaflet-popup-content-wrapper {
+    @apply rounded-xl shadow-lg;
+    border: 1px solid hsl(var(--border));
+    padding: 0;
+  }
+
+  .leaflet-popup-content {
+    margin: 8px 12px !important;
+    font-family: 'Poppins', sans-serif !important;
+  }
+
+  .leaflet-popup-tip {
+    box-shadow: none;
+    border: 1px solid hsl(var(--border));
+  }
+
+  .custom-marker {
+    background: transparent !important;
+    border: none !important;
+  }
+
+  .leaflet-control-zoom a {
+    @apply rounded-lg;
+    color: hsl(var(--foreground)) !important;
+    background: hsl(var(--card)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .leaflet-control-zoom a:hover {
+    background: hsl(var(--muted)) !important;
+  }
 }
 
 @layer utilities {
@@ -214,23 +253,36 @@
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
   }
 
   @keyframes slideUp {
-    from { 
+    from {
       opacity: 0;
       transform: translateY(20px);
     }
-    to { 
+
+    to {
       opacity: 1;
       transform: translateY(0);
     }
   }
 
   @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
   }
 }

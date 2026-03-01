@@ -12,7 +12,7 @@ const generateTokenAndSetCookie = (user, res) => {
     res.cookie("adminToken", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -62,6 +62,7 @@ const adminLogout = async (_req, res) => {
     try {
         res.cookie("adminToken", "", {
             httpOnly: true,
+            sameSite: "lax",
             expires: new Date(0),
         });
         res.status(200).json({ message: "Admin logged out successfully" });
