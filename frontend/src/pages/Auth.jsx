@@ -61,7 +61,7 @@ const Auth = () => {
           Back to Home
         </Link>
 
-        <div className="mb-8">
+        <div className="mb-8 text-center">
           <h1 className="font-display text-2xl font-bold text-foreground">
             {isLogin ? "Welcome back" : "Create an account"}
           </h1>
@@ -167,14 +167,14 @@ const Auth = () => {
           </button>
         </p>
 
-        <p className="mt-8 text-center">
+        <div className="mt-8 pt-6 border-t border-muted text-center">
           <Link
             to="/admin-login"
-            className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+            className="text-sm font-bold text-slate-400 hover:text-primary transition-all uppercase tracking-widest"
           >
             Admin
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

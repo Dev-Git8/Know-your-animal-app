@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, ArrowLeft, Shield } from "lucide-react";
-import { adminLogin } from "@/integrations/authApi";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -9,6 +9,7 @@ const AdminLogin = () => {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { adminLogin } = useAuth();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -47,15 +48,15 @@ const AdminLogin = () => {
           Back to Login
         </Link>
 
-        <div className="mb-8">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 mb-4">
-            <Shield className="h-5 w-5 text-primary" />
+        <div className="mb-12 text-center">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-xl mb-6">
+            <Shield className="h-6 w-6" />
           </div>
-          <h1 className="font-display text-2xl font-bold text-foreground">
-            Admin Access
+          <h1 className="font-display text-3xl font-bold text-slate-900">
+            Admin Login
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Restricted area — authorised personnel only
+          <p className="text-muted-foreground text-sm mt-2">
+            Enter your administrative credentials to continue
           </p>
         </div>
 
@@ -113,6 +114,15 @@ const AdminLogin = () => {
             {isSubmitting ? "Please wait..." : "Sign In as Admin"}
           </button>
         </form>
+
+        <div className="mt-8 pt-6 border-t border-muted text-center">
+          <Link
+            to="/auth"
+            className="text-sm font-bold text-slate-400 hover:text-primary transition-all uppercase tracking-widest"
+          >
+            User Login
+          </Link>
+        </div>
       </div>
     </div>
   );

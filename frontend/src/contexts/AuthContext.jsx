@@ -4,6 +4,8 @@ import {
     registerUser as apiRegister,
     logoutUser as apiLogout,
     getProfile,
+    getAdminProfile,
+    adminLogin as apiAdminLogin,
 } from "@/integrations/authApi";
 
 const AuthContext = createContext(undefined);
@@ -16,9 +18,26 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const data = await getProfile();
-                setUser(data.user);
-            } catch {
+                let data = null;
+                // Try fetching user profile first as it's the more common case
+                try {
+                    data = await getProfile();
+                } catch (e) {
+                    // If regular profile fails, try admin profile
+                    try {
+                        data = await getAdminProfile();
+                    } catch (e2) {
+                        // If both fail, no session
+                        data = null;
+                    }
+                }
+                
+                if (data && data.user) {
+                    setUser(data.user);
+                } else {
+                    setUser(null);
+                }
+            } catch (err) {
                 setUser(null);
             } finally {
                 setLoading(false);
@@ -43,12 +62,21 @@ export const AuthProvider = ({ children }) => {
 
     // ── Logout ─────────────────────────────────────────────────────────
     const logout = async () => {
-        await apiLogout();
+        try {
+            await apiLogout();
+        } catch {}
         setUser(null);
     };
 
+    // ── Admin Login ────────────────────────────────────────────────────
+    const adminLogin = async (credentials) => {
+        const data = await apiAdminLogin(credentials);
+        setUser(data.user);
+        return data;
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, adminLogin, register, logout }}>
             {children}
         </AuthContext.Provider>
     );

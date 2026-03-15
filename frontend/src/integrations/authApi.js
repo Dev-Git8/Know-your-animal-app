@@ -51,4 +51,14 @@ export const getAdminProfile = async () => {
     return data;
 };
 
+export const updateUserProfile = async (updateData) => {
+    // If updateData is FormData (for file uploads), don't set JSON content type
+    const config = updateData instanceof FormData 
+        ? { headers: { "Content-Type": "multipart/form-data" } }
+        : {};
+    
+    const { data } = await api.put("/auth/profile", updateData, config);
+    return data;
+};
+
 export default api;

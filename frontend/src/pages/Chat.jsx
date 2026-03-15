@@ -105,6 +105,7 @@ const Chat = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ messages: newMessages }),
       });
 
