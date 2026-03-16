@@ -10,17 +10,23 @@ const api = axios.create({
 
 // ── Auth API calls ───────────────────────────────────────────────────
 
-export const registerUser = async ({ username, email, password }) => {
+export const registerUser = async ({ username, email, password, role }) => {
     const { data } = await api.post("/auth/register", {
         username,
         email,
         password,
+        role,
     });
     return data;
 };
 
 export const loginUser = async ({ email, password }) => {
-    const { data } = await api.post("/auth/login", { email, password });
+    const { data } = await api.post("/auth/login-user", { email, password });
+    return data;
+};
+
+export const loginDoctor = async ({ email, password }) => {
+    const { data } = await api.post("/auth/login-doctor", { email, password });
     return data;
 };
 
@@ -37,7 +43,7 @@ export const getProfile = async () => {
 // ── Admin API calls ──────────────────────────────────────────────────
 
 export const adminLogin = async ({ email, password }) => {
-    const { data } = await api.post("/admin/login", { email, password });
+    const { data } = await api.post("/admin/login-admin", { email, password });
     return data;
 };
 
@@ -60,5 +66,26 @@ export const updateUserProfile = async (updateData) => {
     const { data } = await api.put("/auth/profile", updateData, config);
     return data;
 };
+
+// ── Doctor API calls ─────────────────────────────────────────────────
+
+export const getDoctorProfile = async () => {
+    const { data } = await api.get("/doctor/profile");
+    return data;
+};
+
+export const updateDoctorProfile = async (profileData) => {
+    const { data } = await api.put("/doctor/profile", profileData);
+    return data;
+};
+
+export const getDoctorPatients = async () => {
+    const { data } = await api.get("/doctor/patients");
+    return data;
+};
+
+export const addTreatmentNote = (data) => api.post("/doctor/treatment-notes", data);
+
+export const getPublicDoctors = () => api.get("/auth/public/doctors");
 
 export default api;

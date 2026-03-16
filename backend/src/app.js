@@ -5,6 +5,7 @@ const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
 const animalRoutes = require("./routes/animal.routes");
 const chatRoutes = require("./routes/chat.routes");
+const doctorRoutes = require("./routes/doctor.routes");
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use(cookieParser());
 // ── Routes ───────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/doctor", doctorRoutes);
 app.use("/api/animals", animalRoutes);
 app.use("/api/chat", chatRoutes);
 

@@ -3,9 +3,11 @@ import {
     loginUser as apiLogin,
     registerUser as apiRegister,
     logoutUser as apiLogout,
+    adminLogout as apiAdminLogout,
     getProfile,
     getAdminProfile,
     adminLogin as apiAdminLogin,
+    loginDoctor as apiDoctorLogin,
 } from "@/integrations/authApi";
 
 const AuthContext = createContext(undefined);
@@ -63,20 +65,38 @@ export const AuthProvider = ({ children }) => {
     // ── Logout ─────────────────────────────────────────────────────────
     const logout = async () => {
         try {
-            await apiLogout();
-        } catch {}
-        setUser(null);
+            // Call both to be safe, regardless of role
+            await Promise.allSettled([
+                apiLogout(),
+                apiAdminLogout()
+            ]);
+        } catch (err) {
+            console.error("Logout error:", err);
+        } finally {
+            setUser(null);
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Force a hard reload to clear all memory states and redirect
+            window.location.href = "/auth";
+        }
     };
 
-    // ── Admin Login ────────────────────────────────────────────────────
     const adminLogin = async (credentials) => {
         const data = await apiAdminLogin(credentials);
         setUser(data.user);
         return data;
     };
 
+    // ── Doctor Login ───────────────────────────────────────────────────
+    const doctorLogin = async (credentials) => {
+        const data = await apiDoctorLogin(credentials);
+        setUser(data.user);
+        return data;
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, adminLogin, register, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, adminLogin, doctorLogin, register, logout }}>
             {children}
         </AuthContext.Provider>
     );

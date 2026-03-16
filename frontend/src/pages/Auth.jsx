@@ -7,14 +7,18 @@ import { useAuth } from "@/contexts/AuthContext";
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "", role: "user" });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { user, login, register } = useAuth();
+  const { user, login, adminLogin, doctorLogin, register } = useAuth();
 
   useEffect(() => {
-    if (user) navigate("/", { replace: true });
+    if (user) {
+      if (user.role === "admin") navigate("/admin/dashboard", { replace: true });
+      else if (user.role === "doctor") navigate("/doctor/dashboard", { replace: true });
+      else navigate("/dashboard", { replace: true });
+    }
   }, [user, navigate]);
 
   const handleChange = (e) => {
@@ -29,15 +33,22 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        await login({ email: formData.email, password: formData.password });
+        if (formData.role === "admin") {
+          await adminLogin({ email: formData.email, password: formData.password });
+        } else if (formData.role === "doctor") {
+          await doctorLogin({ email: formData.email, password: formData.password });
+        } else {
+          await login({ email: formData.email, password: formData.password });
+        }
       } else {
         await register({
           username: formData.name,
           email: formData.email,
           password: formData.password,
+          role: formData.role,
         });
       }
-      navigate("/", { replace: true });
+      // Redirection is handled by the useEffect above
     } catch (err) {
       const message =
         err.response?.data?.message || "Something went wrong. Please try again.";
@@ -97,6 +108,35 @@ const Auth = () => {
               </div>
             </div>
           )}
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">
+              Login As / Sign Up As
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, role: "user" })}
+                className={`flex-1 py-2 rounded-lg border text-xs font-bold transition-all ${formData.role === "user" ? "bg-primary text-white border-primary shadow-lg" : "bg-white text-slate-500 border-slate-200"}`}
+              >
+                Owner
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, role: "doctor" })}
+                className={`flex-1 py-2 rounded-lg border text-xs font-bold transition-all ${formData.role === "doctor" ? "bg-indigo-600 text-white border-indigo-600 shadow-lg" : "bg-white text-slate-500 border-slate-200"}`}
+              >
+                Doctor
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, role: "admin" })}
+                className={`flex-1 py-2 rounded-lg border text-xs font-bold transition-all ${formData.role === "admin" ? "bg-slate-900 text-white border-slate-900 shadow-lg" : "bg-white text-slate-500 border-slate-200"}`}
+              >
+                Admin
+              </button>
+            </div>
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">
@@ -167,14 +207,6 @@ const Auth = () => {
           </button>
         </p>
 
-        <div className="mt-8 pt-6 border-t border-muted text-center">
-          <Link
-            to="/admin-login"
-            className="text-sm font-bold text-slate-400 hover:text-primary transition-all uppercase tracking-widest"
-          >
-            Admin
-          </Link>
-        </div>
       </div>
     </div>
   );

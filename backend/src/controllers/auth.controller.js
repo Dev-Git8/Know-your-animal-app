@@ -1,5 +1,6 @@
 const User = require("../models/user.model");
 const jwt = require("jsonwebtoken");
+const UserProfile = require("../models/UserProfile");
 
 // ── Helper: create JWT & set HTTP-only cookie ────────────────────────
 const generateTokenAndSetCookie = (user, res) => {
@@ -34,7 +35,15 @@ const registerUser = async (req, res) => {
         }
 
         // Create user (password is hashed by pre-save hook)
-        const user = await User.create({ username, email, password });
+        const user = await User.create({ username, email, password, role: req.body.role || "user" });
+
+        // Initial profiles
+        if (user.role === "doctor") {
+            const DoctorProfile = require("../models/DoctorProfile");
+            await DoctorProfile.create({ userId: user._id, doctorName: user.username, email: user.email });
+        } else {
+            await UserProfile.create({ userId: user._id, name: user.username, email: user.email });
+        }
 
         generateTokenAndSetCookie(user, res);
 
@@ -44,6 +53,7 @@ const registerUser = async (req, res) => {
                 _id: user._id,
                 username: user.username,
                 email: user.email,
+                role: user.role,
             },
         });
     } catch (err) {
@@ -87,6 +97,7 @@ const loginUser = async (req, res) => {
                 _id: user._id,
                 username: user.username,
                 email: user.email,
+                role: user.role,
             },
         });
     } catch (err) {
@@ -110,17 +121,104 @@ const logoutUser = async (_req, res) => {
     }
 };
 
-// ── Get Profile (example protected handler) ──────────────────────────
-const getProfile = async (req, res) => {
+
+
+// ── Doctor Login ───────────────────────────────────────────────────
+const loginDoctor = async (req, res) => {
     try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required" });
+        }
+
+        const user = await User.findOne({ email, role: "doctor" }).select("+password");
+        if (!user) {
+            return res.status(401).json({ message: "Invalid email or password" });
+        }
+
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.status(401).json({ message: "Invalid email or password" });
+        }
+
+        generateTokenAndSetCookie(user, res);
+
         res.status(200).json({
-            message: "Profile fetched successfully",
-            user: req.user,
+            message: "Doctor logged in successfully",
+            user: {
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+            },
         });
     } catch (err) {
-        console.error("Profile error:", err);
+        console.error("Doctor login error:", err);
         res.status(500).json({ message: "Internal server error" });
     }
 };
 
-module.exports = { registerUser, loginUser, logoutUser, getProfile };
+const getProfile = async (req, res) => {
+    try {
+        const user = req.user;
+        const profile = await UserProfile.findOne({ userId: user._id });
+        res.status(200).json({
+            user: {
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+            },
+            profile: profile || {}
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching profile" });
+    }
+};
+
+const updateProfile = async (req, res) => {
+    try {
+        const user = req.user;
+        const { username, name, phoneNumber, location, pets } = req.body;
+
+        if (username) {
+            user.username = username;
+            await user.save();
+        }
+
+        let profile = await UserProfile.findOne({ userId: user._id });
+        if (!profile) {
+            profile = new UserProfile({ userId: user._id });
+        }
+
+        if (name) profile.name = name;
+        if (phoneNumber) profile.phoneNumber = phoneNumber;
+        if (location) profile.location = location;
+        if (pets) profile.pets = pets;
+
+        await profile.save();
+
+        res.status(200).json({
+            message: "Profile updated successfully",
+            user: {
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+            },
+            profile
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error updating profile" });
+    }
+};
+
+module.exports = {
+    registerUser,
+    loginUser,
+    loginDoctor,
+    logoutUser,
+    getProfile,
+    updateProfile
+};

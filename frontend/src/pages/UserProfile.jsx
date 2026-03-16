@@ -15,8 +15,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
-import { updateUserProfile } from "@/integrations/authApi";
+import { getProfile, updateUserProfile } from "@/integrations/authApi";
 import { FileText, Download, Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 const UserProfile = () => {
     const { user } = useAuth();
@@ -58,29 +59,57 @@ const UserProfile = () => {
         age: "",
         gender: "Male",
         medicalHistory: "",
-        vaccination: "",
+        vaccination: "Pending",
+        lastCheckup: "",
+        assignedVet: "",
         emergencyNotes: "",
         documents: []
     });
 
     const [showAddPet, setShowAddPet] = useState(false);
 
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const data = await getProfile();
+                if (data.profile) {
+                    setProfile({
+                        name: data.profile.name || data.user.username,
+                        email: data.user.email,
+                        phone: data.profile.phoneNumber || "",
+                        location: data.profile.location || "",
+                        bio: data.profile.bio || "",
+                        specialization: data.profile.specialization || "",
+                        clinic: data.profile.clinicName || "",
+                        experience: data.profile.yearsOfExperience || 0,
+                        photo: data.profile.profilePhoto || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200&h=200",
+                        documents: data.profile.documents || []
+                    });
+                    if (data.profile.pets) {
+                        setPets(data.profile.pets);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load profile", err);
+            }
+        };
+        load();
+    }, []);
+
     const handleProfileSave = async () => {
         setIsSaving(true);
         try {
-            const { user: updatedUser } = await updateUserProfile({
-                username: profile.name,
-                contact: profile.phone,
+            const data = await updateUserProfile({
+                name: profile.name,
+                phoneNumber: profile.phone,
                 location: profile.location,
-                bio: profile.bio,
-                specialization: profile.specialization,
-                clinic: profile.clinic,
-                experience: profile.experience,
+                pets: pets // Save pets too
             });
-            setProfile(prev => ({ ...prev, ...updatedUser }));
             setIsEditing(false);
+            alert("Profile saved!");
         } catch (err) {
             console.error(err);
+            alert("Failed to save profile");
         } finally {
             setIsSaving(false);
         }
@@ -105,9 +134,10 @@ const UserProfile = () => {
         ));
     };
 
-    const handleAddPet = () => {
+    const handleAddPet = async () => {
         if (newPet.name) {
-            setPets([...pets, { ...newPet, id: Date.now(), status: "Healthy" }]);
+            const updatedPets = [...pets, { ...newPet, id: Date.now(), status: "Healthy" }];
+            setPets(updatedPets);
             setNewPet({
                 name: "",
                 type: "Dog",
@@ -115,16 +145,31 @@ const UserProfile = () => {
                 age: "",
                 gender: "Male",
                 medicalHistory: "",
-                vaccination: "",
+                vaccination: "Pending",
+                lastCheckup: "",
+                assignedVet: "",
                 emergencyNotes: "",
                 documents: []
             });
             setShowAddPet(false);
+            
+            // Auto save to backend
+            try {
+                await updateUserProfile({ pets: updatedPets });
+            } catch (err) {
+                console.error("Failed to sync pets", err);
+            }
         }
     };
 
-    const removePet = (id) => {
-        setPets(pets.filter(p => p.id !== id));
+    const removePet = async (id) => {
+        const updatedPets = pets.filter(p => p.id !== id);
+        setPets(updatedPets);
+        try {
+            await updateUserProfile({ pets: updatedPets });
+        } catch (err) {
+            console.error("Failed to sync pets", err);
+        }
     };
 
     return (
@@ -246,16 +291,44 @@ const UserProfile = () => {
                                                                     <Label>Pet Name</Label>
                                                                     <Input placeholder="Enter name" value={newPet.name} onChange={(e) => setNewPet({ ...newPet, name: e.target.value })} />
                                                                 </div>
-                                                                <div className="space-y-2">
-                                                                    <Label>Type</Label>
-                                                                    <select className="w-full h-12 px-4 rounded-xl border" value={newPet.type} onChange={(e) => setNewPet({ ...newPet, type: e.target.value })}>
-                                                                        <option>Dog</option><option>Cat</option><option>Cow</option><option>Goat</option>
-                                                                    </select>
+                                                                <div className="grid grid-cols-2 gap-4">
+                                                                    <div className="space-y-2">
+                                                                        <Label>Type</Label>
+                                                                        <select className="w-full h-11 px-4 rounded-xl border text-sm" value={newPet.type} onChange={(e) => setNewPet({ ...newPet, type: e.target.value })}>
+                                                                            <option>Dog</option><option>Cat</option><option>Cow</option><option>Goat</option><option>Chicken</option><option>Other</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div className="space-y-2">
+                                                                        <Label>Breed</Label>
+                                                                        <Input placeholder="Breed" value={newPet.breed} onChange={(e) => setNewPet({ ...newPet, breed: e.target.value })} />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="grid grid-cols-2 gap-4">
+                                                                    <div className="space-y-2">
+                                                                        <Label>Age</Label>
+                                                                        <Input placeholder="Age" value={newPet.age} onChange={(e) => setNewPet({ ...newPet, age: e.target.value })} />
+                                                                    </div>
+                                                                    <div className="space-y-2">
+                                                                        <Label>Vaccination</Label>
+                                                                        <select className="w-full h-11 px-4 rounded-xl border text-sm" value={newPet.vaccination} onChange={(e) => setNewPet({ ...newPet, vaccination: e.target.value })}>
+                                                                            <option>Up to date</option><option>Pending</option><option>Overdue</option>
+                                                                        </select>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                            <div className="space-y-2">
-                                                                <Label>Notes</Label>
-                                                                <textarea className="w-full h-32 p-4 rounded-xl border" placeholder="Medical notes" value={newPet.emergencyNotes} onChange={(e) => setNewPet({ ...newPet, emergencyNotes: e.target.value })} />
+                                                            <div className="space-y-4">
+                                                                <div className="space-y-2">
+                                                                    <Label>Last Checkup</Label>
+                                                                    <Input type="date" value={newPet.lastCheckup} onChange={(e) => setNewPet({ ...newPet, lastCheckup: e.target.value })} />
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                    <Label>Assigned Veterinarian</Label>
+                                                                    <Input placeholder="Doctor Name" value={newPet.assignedVet} onChange={(e) => setNewPet({ ...newPet, assignedVet: e.target.value })} />
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                    <Label>Emergency Notes</Label>
+                                                                    <textarea className="w-full h-20 p-4 rounded-xl border text-sm" placeholder="Allergies, chronic conditions..." value={newPet.emergencyNotes} onChange={(e) => setNewPet({ ...newPet, emergencyNotes: e.target.value })} />
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         <div className="flex gap-3 mt-8">
@@ -275,9 +348,25 @@ const UserProfile = () => {
                                                                         <div>
                                                                             <h3 className="text-xl font-black">{pet.name}</h3>
                                                                             <p className="text-xs font-bold text-primary">{pet.breed} • {pet.age}</p>
+                                                                            <div className="flex gap-2 mt-1">
+                                                                                <Badge variant="outline" className={`text-[10px] font-bold ${pet.vaccination === "Up to date" ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-amber-50 text-amber-600 border-amber-100"}`}>
+                                                                                    {pet.vaccination}
+                                                                                </Badge>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                     <button onClick={() => removePet(pet.id)} className="text-slate-300 hover:text-red-500 transition-colors"><Trash2 className="h-4 w-4" /></button>
+                                                                </div>
+
+                                                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                                                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                                                                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Last Checkup</p>
+                                                                        <p className="text-sm font-bold text-slate-700">{pet.lastCheckup || "Not recorded"}</p>
+                                                                    </div>
+                                                                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                                                                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Assigned Vet</p>
+                                                                        <p className="text-sm font-bold text-slate-700">{pet.assignedVet || "Unassigned"}</p>
+                                                                    </div>
                                                                 </div>
                                                                 
                                                                 <div className="space-y-4">

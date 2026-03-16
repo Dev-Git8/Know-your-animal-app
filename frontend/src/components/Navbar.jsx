@@ -172,13 +172,31 @@ const Navbar = () => {
                         <p className="text-[10px] font-bold text-slate-400 truncate uppercase mt-0.5 tracking-tight">{user.email}</p>
                       </div>
                       <Link
-                        to="/profile"
+                        to={user.role === "doctor" ? "/doctor/dashboard" : (user.role === "admin" ? "/admin/dashboard" : "/dashboard")}
                         onClick={() => setIsDropdownOpen(false)}
                         className="flex items-center gap-3 px-5 py-3.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-primary transition-all"
                       >
                         <LayoutDashboard className="h-4 w-4" />
+                        Dashboard
+                      </Link>
+                      <Link
+                        to="/profile"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-3 px-5 py-3.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-primary transition-all"
+                      >
+                        <User className="h-4 w-4" />
                         {t.nav.profile}
                       </Link>
+                      {user.role === "doctor" && (
+                        <Link
+                          to="/doctor/dashboard"
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="flex items-center gap-3 px-5 py-3.5 text-sm font-bold text-indigo-600 hover:bg-indigo-50 transition-all"
+                        >
+                          <Shield className="h-4 w-4" />
+                          Doctor Panel
+                        </Link>
+                      )}
                       {user.role === "admin" && (
                         <Link
                           to="/admin/dashboard"
@@ -258,11 +276,11 @@ const Navbar = () => {
                       </div>
                       <div className="flex gap-2">
                         <Link
-                          to="/profile"
+                          to={user.role === "doctor" ? "/doctor/dashboard" : (user.role === "admin" ? "/admin/dashboard" : "/dashboard")}
                           onClick={() => setIsMenuOpen(false)}
                           className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white shadow-sm border border-slate-100"
                         >
-                          <LayoutDashboard className="h-3.5 w-3.5" /> {t.nav.profile}
+                          <LayoutDashboard className="h-3.5 w-3.5" /> Dashboard
                         </Link>
                         {user.role === "admin" && (
                           <Link

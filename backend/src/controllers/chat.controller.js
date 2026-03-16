@@ -44,12 +44,14 @@ exports.chat = async (req, res) => {
         );
 
         if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const errorMessage = errorData.error?.message || "AI service error";
+            console.error(`[Gemini Error] Status: ${response.status}, Message: ${errorMessage}`);
+            
             if (response.status === 429) {
-                return res.status(429).json({ error: "Too many requests. Please try again in a moment." });
+                return res.status(429).json({ error: "Too many requests. Please try again later." });
             }
-            const text = await response.text();
-            console.error("Gemini API error:", response.status, text);
-            return res.status(500).json({ error: "AI service error" });
+            return res.status(response.status).json({ error: errorMessage });
         }
 
         // Stream the SSE response back to the client

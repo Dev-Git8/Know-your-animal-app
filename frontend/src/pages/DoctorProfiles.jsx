@@ -12,82 +12,75 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-const doctors = [
-  {
-    id: 1,
-    name: "Dr. Rajesh Kumar",
-    photo: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=200&h=200",
-    qualification: "BVSc & AH, MVSc (Surgery)",
-    experience: 12,
-    specialization: "Large Animal Surgery",
-    clinic: "City Veterinary Hospital",
-    location: "Mumbai, Maharashtra",
-    contact: "+91 98765 43210",
-    availability: "Available",
-    rating: 4.9,
-    reviews: 124,
-    tags: ["Surgery", "Cattle", "Buffalo"]
-  },
-  {
-    id: 2,
-    name: "Dr. Sneha Patil",
-    photo: "https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=200&h=200",
-    qualification: "BVSc, PhD (Avian Medicine)",
-    experience: 8,
-    specialization: "Avian & Exotic Birds",
-    clinic: "Paws & Wings Clinic",
-    location: "Pune, Maharashtra",
-    contact: "+91 91234 56789",
-    availability: "In Surgery",
-    rating: 4.8,
-    reviews: 89,
-    tags: ["Birds", "Exotic", "Emergency"]
-  },
-  {
-    id: 3,
-    name: "Dr. Amit Sharma",
-    photo: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=200&h=200",
-    qualification: "BVSc & AH",
-    experience: 15,
-    specialization: "Cattle Health & Nutrition",
-    clinic: "Rural Wellness Center",
-    location: "Nagpur, Maharashtra",
-    contact: "+91 88888 77777",
-    availability: "Available",
-    rating: 4.7,
-    reviews: 210,
-    tags: ["Nutrition", "Dairy", "Prevention"]
-  },
-  {
-    id: 4,
-    name: "Dr. Priya Mehta",
-    photo: "https://images.unsplash.com/photo-1559839734-2b71f1e59816?auto=format&fit=crop&q=80&w=200&h=200",
-    qualification: "MVSc (Medicine), Canine Specialist",
-    experience: 10,
-    specialization: "Small Animal Internal Medicine",
-    clinic: "The Pet Care Point",
-    location: "Bangalore, Karnataka",
-    contact: "+91 77777 66666",
-    availability: "Offline",
-    rating: 4.9,
-    reviews: 156,
-    tags: ["Dogs", "Cats", "Internal Medicine"]
-  }
-];
+import { getPublicDoctors } from "@/integrations/authApi";
+import { useEffect } from "react";
 
 const DoctorProfiles = () => {
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("All");
+  const [selectedLocation, setSelectedLocation] = useState("All");
+  const [selectedAvailability, setSelectedAvailability] = useState("All");
 
-  const allTags = ["All", ...new Set(doctors.flatMap(d => d.tags))];
+  useEffect(() => {
+    const fetchDocs = async () => {
+      try {
+        const { data } = await getPublicDoctors();
+        let docs = data.map(d => ({
+          id: d._id,
+          name: d.doctorName,
+          photo: d.profilePhoto || `https://api.dicebear.com/7.x/avataaars/svg?seed=${d.doctorName}`,
+          qualification: d.qualification,
+          experience: d.yearsOfExperience,
+          specialization: d.specialization,
+          clinic: d.clinicName,
+          location: d.location,
+          contact: d.contactNumber,
+          availability: d.availabilityStatus || "Offline",
+          rating: d.rating || 0,
+          tags: d.specialization ? [d.specialization] : []
+        }));
+
+        if (docs.length === 0) {
+          docs = [
+            { id: 'f1', name: 'Dr. Ramesh Kumar', specialization: 'Large Animal Specialist', location: 'Bangalore', experience: 12, rating: 4.8, availability: 'Available', clinic: 'Green Valley Vet', qualification: 'MVSc', contact: '9876543210', photo: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=200&h=200', tags: ['Livestock'] },
+            { id: 'f2', name: 'Dr. Priya Sharma', specialization: 'Pet Surgery Specialist', location: 'Mysore', experience: 8, rating: 4.9, availability: 'Available', clinic: 'Paws & Claws', qualification: 'BVSc', contact: '9876543211', photo: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=200&h=200', tags: ['Surgery'] },
+            { id: 'f3', name: 'Dr. Arjun Patel', specialization: 'Livestock Health Expert', location: 'Hubli', experience: 10, rating: 4.7, availability: 'Busy', clinic: 'Rural Animal Hospital', qualification: 'MVSc', contact: '9876543212', photo: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=200&h=200', tags: ['Cows', 'Goats'] },
+            { id: 'f4', name: 'Dr. Sneha Rao', specialization: 'Poultry Disease Specialist', location: 'Mangalore', experience: 7, rating: 4.6, availability: 'Available', clinic: 'Bird Care Center', qualification: 'BVSc', contact: '9876543213', photo: 'https://images.unsplash.com/photo-1559839734-2b71f1536783?auto=format&fit=crop&q=80&w=200&h=200', tags: ['Poultry'] },
+            { id: 'f5', name: 'Dr. Karthik Iyer', specialization: 'Small Animal Medicine', location: 'Chennai', experience: 9, rating: 4.5, availability: 'Offline', clinic: 'City Vet Hub', qualification: 'BVSc', contact: '9876543214', photo: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=200&h=200', tags: ['Cats', 'Dogs'] },
+            { id: 'f6', name: 'Dr. Meera Nair', specialization: 'Dairy Animal Specialist', location: 'Kochi', experience: 11, rating: 4.8, availability: 'Available', clinic: 'Nature Dairy Clinic', qualification: 'MVSc', contact: '9876543215', photo: 'https://images.unsplash.com/photo-1527613426441-4da17471b66d?auto=format&fit=crop&q=80&w=200&h=200', tags: ['Dairy'] },
+          ];
+        }
+        setDoctors(docs);
+      } catch (err) {
+        console.error("Failed to fetch doctors", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDocs();
+  }, []);
+
+  const allTags = ["All", ...new Set(doctors.map(d => d.specialization).filter(Boolean))];
+  const allLocations = ["All", ...new Set(doctors.map(d => d.location).filter(Boolean))];
+  const allStatuses = ["All", "Available", "Busy", "Offline"];
 
   const filteredDoctors = doctors.filter(doc => {
-    const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.specialization.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTag = selectedTag === "All" || doc.tags.includes(selectedTag);
-    return matchesSearch && matchesTag;
+    const s = searchTerm.toLowerCase();
+    const matchesSearch = doc.name.toLowerCase().includes(s) ||
+                         (doc.specialization?.toLowerCase().includes(s)) ||
+                         (doc.clinic?.toLowerCase().includes(s)) ||
+                         (doc.location?.toLowerCase().includes(s));
+    
+    const matchesTag = selectedTag === "All" || doc.specialization === selectedTag;
+    const matchesLocation = selectedLocation === "All" || doc.location === selectedLocation;
+    const matchesAvailability = selectedAvailability === "All" || doc.availability === selectedAvailability;
+
+    return matchesSearch && matchesTag && matchesLocation && matchesAvailability;
   });
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-slate-50/50 flex flex-col">
@@ -114,6 +107,57 @@ const DoctorProfiles = () => {
             </motion.div>
           </div>
 
+          {/* Top Rated Section */}
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Top Rated Veterinary Experts <span className="text-primary italic">Near You</span></h2>
+                <p className="text-slate-500 text-sm">Highly recommended professionals based on user feedback.</p>
+              </div>
+              <Button variant="ghost" className="text-primary font-bold hover:bg-primary/5">View All</Button>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-2">
+              {doctors.filter(d => d.rating >= 4.5).slice(0, 2).map(doc => (
+                <motion.div
+                  key={doc.id}
+                  whileHover={{ y: -8, scale: 1.01 }}
+                  className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/40 flex flex-col sm:flex-row gap-8 items-center relative overflow-hidden group/top"
+                >
+                  <div className="absolute top-0 left-0 w-2 h-full bg-primary" />
+                  <div className="relative">
+                    <Avatar className="h-36 w-36 border-4 border-slate-50 shadow-2xl transition-transform duration-500 group-hover/top:scale-105">
+                      <AvatarImage src={doc.photo} className="object-cover" />
+                      <AvatarFallback className="text-2xl font-black bg-slate-100 text-slate-300">{doc.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="absolute -bottom-2 -right-2 bg-slate-900 text-white p-2 rounded-2xl shadow-xl flex items-center gap-1 scale-90 sm:scale-100">
+                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                      <span className="text-sm font-black">{doc.rating}</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-4 text-center sm:text-left">
+                    <div>
+                      <h3 className="text-2xl font-black text-slate-900 mb-1">{doc.name}</h3>
+                      <p className="text-sm font-bold text-primary uppercase tracking-[0.2em]">{doc.specialization}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-slate-500 text-sm font-medium justify-center sm:justify-start">
+                        <MapPin className="h-4 w-4 text-slate-300" /> {doc.location}
+                      </div>
+                      <div className="flex items-center gap-2 text-slate-500 text-sm font-medium justify-center sm:justify-start">
+                        <Hospital className="h-4 w-4 text-slate-300" /> {doc.clinic}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2 pt-2 justify-center sm:justify-start">
+                      <Badge className="bg-emerald-500 text-white border-none py-1.5 px-4 rounded-xl shadow-lg shadow-emerald-100">{doc.availability}</Badge>
+                      <Badge variant="outline" className="border-slate-200 text-slate-500 bg-slate-50/50 py-1.5 px-4 rounded-xl">{doc.experience} Years Exp</Badge>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
           {/* Filters & Search */}
           <div className="max-w-4xl mx-auto mb-12 space-y-6">
             <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -133,20 +177,65 @@ const DoctorProfiles = () => {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 justify-center">
-              {allTags.map(tag => (
-                <button
-                  key={tag}
-                  onClick={() => setSelectedTag(tag)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                    selectedTag === tag 
-                    ? "bg-slate-900 text-white shadow-md scale-105" 
-                    : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
+            <div className="flex flex-col gap-4">
+              <div className="space-y-2">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Specialization</p>
+                <div className="flex flex-wrap gap-2">
+                  {allTags.map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => setSelectedTag(tag)}
+                      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                        selectedTag === tag 
+                        ? "bg-slate-900 text-white shadow-md scale-105" 
+                        : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Location</p>
+                  <div className="flex flex-wrap gap-2">
+                    {allLocations.map(loc => (
+                      <button
+                        key={loc}
+                        onClick={() => setSelectedLocation(loc)}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                          selectedLocation === loc 
+                          ? "bg-indigo-600 text-white shadow-sm" 
+                          : "bg-white border text-slate-500 hover:bg-slate-50"
+                        }`}
+                      >
+                        {loc}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Availability</p>
+                  <div className="flex flex-wrap gap-2">
+                    {allStatuses.map(status => (
+                      <button
+                        key={status}
+                        onClick={() => setSelectedAvailability(status)}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                          selectedAvailability === status 
+                          ? "bg-emerald-600 text-white shadow-sm" 
+                          : "bg-white border text-slate-500 hover:bg-slate-50"
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -181,13 +270,13 @@ const DoctorProfiles = () => {
                             className={`px-3 py-1 rounded-full border shadow-sm ${
                               doc.availability === "Available" 
                               ? "bg-emerald-50 text-emerald-700 border-emerald-100" 
-                              : doc.availability === "In Surgery"
+                              : doc.availability === "Busy"
                               ? "bg-amber-50 text-amber-700 border-amber-100"
                               : "bg-slate-50 text-slate-500 border-slate-100"
                             }`}
                           >
                             <span className={`w-1.5 h-1.5 rounded-full mr-2 ${
-                              doc.availability === "Available" ? "bg-emerald-500" : doc.availability === "In Surgery" ? "bg-amber-500" : "bg-slate-400"
+                              doc.availability === "Available" ? "bg-emerald-500" : doc.availability === "Busy" ? "bg-amber-500" : "bg-slate-400"
                             } animate-pulse`} />
                             {doc.availability}
                           </Badge>
@@ -229,17 +318,18 @@ const DoctorProfiles = () => {
                         ))}
                       </div>
 
-                      <div className="pt-6 border-t border-slate-100 flex items-center justify-between gap-4">
-                        <a 
-                          href={`tel:${doc.contact}`} 
-                          className="flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-50 text-slate-600 hover:bg-primary/10 hover:text-primary transition-all border border-slate-100"
-                          title="Call Doctor"
+                      <div className="pt-6 border-t border-slate-100 grid grid-cols-2 gap-3">
+                        <Button 
+                          variant="outline" 
+                          className="h-11 rounded-xl border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                          onClick={() => window.location.href = `tel:${doc.contact}`}
                         >
-                          <Phone className="h-5 w-5" />
-                        </a>
-                        <Button className="flex-1 h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold group/btn shadow-lg shadow-slate-200">
-                          Book Visit
-                          <ChevronRight className="h-4 w-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
+                          <Phone className="h-4 w-4" />
+                          Contact
+                        </Button>
+                        <Button className="h-11 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold group/btn shadow-lg shadow-slate-200">
+                          View Profile
+                          <ChevronRight className="h-4 w-4 ml-1 transition-transform group-hover/btn:translate-x-1" />
                         </Button>
                       </div>
                     </CardContent>
@@ -260,7 +350,7 @@ const DoctorProfiles = () => {
               </div>
               <h3 className="text-xl font-bold text-slate-900">No doctors found</h3>
               <p className="text-slate-500">Try adjusting your filters or search terms.</p>
-              <Button onClick={() => {setSearchTerm(""); setSelectedTag("All");}} variant="link" className="text-primary font-bold">
+              <Button onClick={() => {setSearchTerm(""); setSelectedTag("All"); setSelectedLocation("All"); setSelectedAvailability("All");}} variant="link" className="text-primary font-bold">
                 Clear all filters
               </Button>
             </motion.div>

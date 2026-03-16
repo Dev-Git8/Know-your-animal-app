@@ -1,4 +1,6 @@
 const User = require("../models/user.model");
+const DoctorProfile = require("../models/DoctorProfile");
+const PatientRecord = require("../models/PatientRecord");
 const jwt = require("jsonwebtoken");
 
 // ── Helper: create JWT & set HTTP-only cookie ────────────────────────
@@ -84,4 +86,79 @@ const adminProfile = async (req, res) => {
     }
 };
 
-module.exports = { adminLogin, adminLogout, adminProfile };
+// ── User Management ────────────────────────────────────────────────
+const getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find({ role: "user" });
+        res.status(200).json(users);
+    } catch (err) {
+        console.error("Get all users error:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// ── Doctor Management ──────────────────────────────────────────────
+const getAllDoctors = async (req, res) => {
+    try {
+        const doctors = await User.find({ role: "doctor" });
+        const profiles = await DoctorProfile.find().populate("userId", "username email");
+        res.status(200).json({ doctors, profiles });
+    } catch (err) {
+        console.error("Get all doctors error:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+const addDoctor = async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(409).json({ message: "User already exists" });
+        }
+        const user = await User.create({ username, email, password, role: "doctor" });
+        await DoctorProfile.create({ userId: user._id, doctorName: username, email });
+        res.status(201).json({ message: "Doctor account created", user });
+    } catch (err) {
+        console.error("Add doctor error:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+const deleteDoctor = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await User.findByIdAndDelete(id);
+        await DoctorProfile.findOneAndDelete({ userId: id });
+        res.status(200).json({ message: "Doctor removed successfully" });
+    } catch (err) {
+        console.error("Delete doctor error:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+const updateDoctor = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const profile = await DoctorProfile.findOneAndUpdate(
+            { userId: id },
+            { ...req.body },
+            { new: true }
+        );
+        res.status(200).json({ message: "Doctor profile updated", profile });
+    } catch (err) {
+        console.error("Update doctor error:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+module.exports = { 
+    adminLogin, 
+    adminLogout, 
+    adminProfile, 
+    getAllUsers, 
+    getAllDoctors, 
+    addDoctor, 
+    deleteDoctor, 
+    updateDoctor 
+};
