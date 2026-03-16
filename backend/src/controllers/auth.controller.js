@@ -13,6 +13,7 @@ const generateTokenAndSetCookie = (user, res) => {
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        path: "/",
     });
 
     return token;
@@ -112,6 +113,9 @@ const logoutUser = async (_req, res) => {
         res.cookie("token", "", {
             httpOnly: true,
             expires: new Date(0),
+            path: "/",
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
         });
 
         res.status(200).json({ message: "Logged out successfully" });

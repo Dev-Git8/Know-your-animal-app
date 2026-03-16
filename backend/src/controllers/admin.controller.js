@@ -16,6 +16,7 @@ const generateTokenAndSetCookie = (user, res) => {
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: "/",
     });
 
     return token;
@@ -65,6 +66,9 @@ const adminLogout = async (_req, res) => {
         res.cookie("adminToken", "", {
             httpOnly: true,
             expires: new Date(0),
+            path: "/",
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
         });
         res.status(200).json({ message: "Admin logged out successfully" });
     } catch (err) {
