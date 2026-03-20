@@ -1,234 +1,393 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { 
-    Stethoscope, Users, Calendar, Clipboard, 
-    LogOut, User as UserIcon, CheckCircle, XCircle, Activity
+import { useNavigate } from "react-router-dom";
+import {
+    Stethoscope, Users, Calendar, Clipboard, LogOut,
+    User as UserIcon, CheckCircle, XCircle, Activity,
+    Pencil, Clock, PawPrint, Phone, MapPin, Award,
+    ChevronRight, BadgeCheck, Bell, Save, AlertTriangle
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-    getDoctorProfile, updateDoctorProfile, 
-    getDoctorPatients, addTreatmentNote 
-} from "@/integrations/authApi";
+import api from "@/integrations/authApi";
 
-const DoctorDashboard = () => {
-    const { logout } = useAuth();
-    const navigate = useNavigate();
-    const [profile, setProfile] = useState(null);
-    const [patients, setPatients] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState("profile");
-    const [showNoteModal, setShowNoteModal] = useState(false);
-    const [selectedPatient, setSelectedPatient] = useState(null);
-    const [treatmentNote, setTreatmentNote] = useState("");
+// ── Small helpers ──────────────────────────────────────────────────────────
+const Field = ({ label, value, onChange, type = "text", placeholder, readOnly }) => (
+    <div>
+        {label && <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">{label}</label>}
+        <input
+            type={type} value={value || ""} onChange={onChange} placeholder={placeholder}
+            readOnly={readOnly}
+            className={`w-full px-4 py-3 rounded-xl text-sm font-medium outline-none transition-all border ${readOnly ? "bg-slate-50 border-slate-100 text-slate-500 cursor-not-allowed" : "bg-white border-slate-200 text-slate-800 focus:ring-2 focus:ring-indigo-400/20 focus:border-indigo-400"}`}
+        />
+    </div>
+);
 
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                const [profData, patData] = await Promise.all([
-                    getDoctorProfile(),
-                    getDoctorPatients()
-                ]);
-                setProfile(profData);
-                setPatients(patData);
-            } catch (err) {
-                console.error("Failed to load doctor data", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadData();
-    }, []);
-
-    const handleUpdateProfile = async (e) => {
-        e.preventDefault();
-        try {
-            const updated = await updateDoctorProfile(profile);
-            setProfile(updated.profile);
-            alert("Profile updated successfully!");
-        } catch (err) {
-            alert("Failed to update profile");
-        }
+const StatusBadge = ({ status }) => {
+    const cfg = {
+        pending: { bg: "bg-amber-100", text: "text-amber-700", label: "Pending", dot: "🟡" },
+        confirmed: { bg: "bg-blue-100", text: "text-blue-700", label: "Confirmed", dot: "🔵" },
+        completed: { bg: "bg-green-100", text: "text-green-700", label: "Completed", dot: "🟢" },
+        cancelled: { bg: "bg-red-100", text: "text-red-600", label: "Cancelled", dot: "🔴" },
     };
+    const c = cfg[status] || cfg.pending;
+    return <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black ${c.bg} ${c.text}`}>{c.dot} {c.label}</span>;
+};
 
-    const handleAddNote = async (e) => {
-        e.preventDefault();
+// ── Appointment Management Modal ────────────────────────────────────────────
+const AppointmentModal = ({ appt, onClose, onSave }) => {
+    const [status, setStatus] = useState(appt.status);
+    const [notes, setNotes] = useState(appt.doctorNotes || "");
+    const [saving, setSaving] = useState(false);
+
+    const save = async () => {
+        setSaving(true);
         try {
-            await addTreatmentNote({
-                userId: selectedPatient.userId._id,
-                petName: selectedPatient.petName,
-                treatmentNotes: treatmentNote
-            });
-            alert("Note added!");
-            setShowNoteModal(false);
-            setTreatmentNote("");
-            // Reload patients
-            const patData = await getDoctorPatients();
-            setPatients(patData);
-        } catch (err) {
-            alert("Failed to add note");
-        }
+            await api.put(`/doctor/appointments/${appt._id}`, { status, doctorNotes: notes });
+            onSave();
+        } catch { alert("Failed to update appointment"); }
+        finally { setSaving(false); }
     };
-
-    if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
     return (
-        <div className="min-h-screen bg-muted/30">
-            {/* Sidebar */}
-            <aside className="fixed left-0 top-0 h-full w-64 bg-card border-r border-border p-6 hidden lg:block">
-                <div className="flex items-center gap-2 mb-10 text-primary">
-                    <Stethoscope className="h-6 w-6" />
-                    <span className="font-display font-bold text-lg">Vet Panel</span>
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+            <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
+                <div className="p-6 border-b border-slate-100">
+                    <h2 className="font-black text-slate-900 text-lg">Manage Appointment</h2>
+                    <p className="text-sm text-slate-400 mt-1">🐾 {appt.petName} · Owner: {appt.userId?.username}</p>
                 </div>
-                
-                <nav className="space-y-2">
-                    <button 
-                        onClick={() => setActiveTab("profile")}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeTab === "profile" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
-                    >
-                        <UserIcon className="h-4 w-4" /> My Profile
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab("patients")}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeTab === "patients" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
-                    >
-                        <Users className="h-4 w-4" /> Patients
-                    </button>
-                </nav>
-
-                <div className="absolute bottom-6 left-6 right-6">
-                    <button 
-                        onClick={() => { logout(); navigate("/login-doctor"); }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
-                    >
-                        <LogOut className="h-4 w-4" /> Logout
-                    </button>
+                <div className="p-6 space-y-4">
+                    <div className="bg-slate-50 rounded-2xl p-4 text-sm space-y-2">
+                        <p><span className="font-bold text-slate-600">Reason:</span> <span className="text-slate-700">{appt.reason}</span></p>
+                        <p><span className="font-bold text-slate-600">Date:</span> <span className="text-slate-700">{appt.preferredDate}</span></p>
+                        <p><span className="font-bold text-slate-600">Time:</span> <span className="text-slate-700">{appt.preferredTime}</span></p>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Update Status</label>
+                        <div className="grid grid-cols-2 gap-2">
+                            {["pending","confirmed","completed","cancelled"].map(s => (
+                                <button key={s} onClick={() => setStatus(s)}
+                                    className={`py-2.5 rounded-xl text-sm font-bold capitalize transition-all ${status === s ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
+                                    {s}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Clinical Notes</label>
+                        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Add treatment notes, medication, follow-up instructions..."
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm resize-none outline-none focus:ring-2 focus:ring-indigo-400/20 focus:border-indigo-400" />
+                    </div>
+                    <div className="flex gap-3">
+                        <button onClick={save} disabled={saving} className="flex-1 py-3 rounded-xl bg-indigo-600 text-white text-sm font-black hover:bg-indigo-700 transition-all">
+                            {saving ? "Saving..." : "Save Changes"}
+                        </button>
+                        <button onClick={onClose} className="flex-1 py-3 rounded-xl bg-slate-100 text-slate-700 text-sm font-bold">Cancel</button>
+                    </div>
                 </div>
-            </aside>
+            </div>
+        </div>
+    );
+};
 
-            {/* Main Content */}
-            <main className="lg:ml-64 p-8">
-                <h1 className="text-2xl font-bold mb-8">
-                    {activeTab === "profile" ? "Doctor Profile" : "Patient Records"}
-                </h1>
+// ── Doctor Dashboard ────────────────────────────────────────────────────────
+const DoctorDashboard = () => {
+    const { logout, user } = useAuth();
+    const navigate = useNavigate();
+    const [profile, setProfile] = useState(null);
+    const [appointments, setAppointments] = useState([]);
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState("profile");
+    const [editMode, setEditMode] = useState(false);
+    const [saveMsg, setSaveMsg] = useState("");
+    const [manageAppt, setManageAppt] = useState(null);
+    const [apptFilter, setApptFilter] = useState("all");
 
-                {activeTab === "profile" && (
-                    <div className="bg-card border border-border rounded-xl p-8 max-w-2xl shadow-sm">
-                        <form onSubmit={handleUpdateProfile} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-medium text-muted-foreground uppercase mb-1">Name</label>
-                                    <input value={profile.doctorName || ""} onChange={(e)=>setProfile({...profile, doctorName: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-input bg-background" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-muted-foreground uppercase mb-1">Specialization</label>
-                                    <input value={profile.specialization || ""} onChange={(e)=>setProfile({...profile, specialization: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-input bg-background" />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-medium text-muted-foreground uppercase mb-1">Clinic</label>
-                                    <input value={profile.clinicName || ""} onChange={(e)=>setProfile({...profile, clinicName: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-input bg-background" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-muted-foreground uppercase mb-1">Qualification</label>
-                                    <input value={profile.qualification || ""} onChange={(e)=>setProfile({...profile, qualification: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-input bg-background" />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-medium text-muted-foreground uppercase mb-1">Contact Number</label>
-                                    <input value={profile.contactNumber || ""} onChange={(e)=>setProfile({...profile, contactNumber: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-input bg-background" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-muted-foreground uppercase mb-1">Location</label>
-                                    <input value={profile.location || ""} onChange={(e)=>setProfile({...profile, location: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-input bg-background" />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-medium text-muted-foreground uppercase mb-1">Years Exp</label>
-                                    <input type="number" value={profile.yearsOfExperience || 0} onChange={(e)=>setProfile({...profile, yearsOfExperience: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-input bg-background" />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-muted-foreground uppercase mb-1">Availability</label>
-                                <div className="flex flex-wrap items-center gap-4 mt-2">
-                                    <button type="button" onClick={()=>setProfile({...profile, availabilityStatus: "Available"})} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all ${profile.availabilityStatus === "Available" ? "bg-green-100 text-green-700 border border-green-200 shadow-sm" : "bg-muted text-muted-foreground border border-transparent"}`}>
-                                        <CheckCircle className="h-4 w-4" /> Available
-                                    </button>
-                                    <button type="button" onClick={()=>setProfile({...profile, availabilityStatus: "Busy"})} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all ${profile.availabilityStatus === "Busy" ? "bg-amber-100 text-amber-700 border border-amber-200 shadow-sm" : "bg-muted text-muted-foreground border border-transparent"}`}>
-                                        <Activity className="h-4 w-4" /> Busy
-                                    </button>
-                                    <button type="button" onClick={()=>setProfile({...profile, availabilityStatus: "Offline"})} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all ${profile.availabilityStatus === "Offline" ? "bg-slate-100 text-slate-700 border border-slate-200 shadow-sm" : "bg-muted text-muted-foreground border border-transparent"}`}>
-                                        <XCircle className="h-4 w-4" /> Offline
-                                    </button>
-                                </div>
-                            </div>
-                            <button type="submit" className="mt-4 px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors">
-                                Save Changes
+    const loadData = async () => {
+        try {
+            const [profRes, apptRes, usersRes] = await Promise.all([
+                api.get("/doctor/profile"),
+                api.get("/doctor/appointments"),
+                api.get("/doctor/users"),
+            ]);
+            setProfile(profRes.data.profile);
+            setAppointments(apptRes.data);
+            setUsers(usersRes.data);
+        } catch (err) {
+            console.error("Failed to load doctor data", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => { loadData(); }, []);
+
+    const saveProfile = async () => {
+        try {
+            await api.put("/doctor/profile", profile);
+            setSaveMsg("Profile saved!");
+            setEditMode(false);
+            setTimeout(() => setSaveMsg(""), 3000);
+        } catch { alert("Failed to save profile"); }
+    };
+
+    const setAvailability = async (status) => {
+        try {
+            const updated = { ...profile, availabilityStatus: status };
+            setProfile(updated);
+            await api.put("/doctor/profile", { availabilityStatus: status });
+        } catch { alert("Failed to update availability"); }
+    };
+
+    const filteredAppts = apptFilter === "all" ? appointments : appointments.filter(a => a.status === apptFilter);
+
+    const tabs = [
+        { id: "profile", label: "My Profile", icon: <UserIcon className="h-4 w-4" /> },
+        { id: "appointments", label: "Appointments", icon: <Calendar className="h-4 w-4" />, count: appointments.filter(a => a.status === "pending").length },
+        { id: "users", label: "Patients", icon: <Users className="h-4 w-4" /> },
+    ];
+
+    if (loading) return (
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-indigo-600" />
+        </div>
+    );
+
+    const availColor = { Available: "bg-green-500", Busy: "bg-amber-500", Offline: "bg-slate-400" };
+
+    return (
+        <div className="min-h-screen bg-slate-50 font-inter">
+            {/* Top Header */}
+            <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm">
+                <div className="container mx-auto px-4 flex items-center justify-between h-16">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center">
+                            <Stethoscope className="h-4 w-4 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-sm font-black text-slate-900">Vet Panel</h1>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Doctor Workspace</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        {/* Live Availability Toggle */}
+                        <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-xl">
+                            <span className={`w-2.5 h-2.5 rounded-full ${availColor[profile?.availabilityStatus] || "bg-slate-400"}`} />
+                            <span className="text-xs font-black text-slate-700">{profile?.availabilityStatus || "Offline"}</span>
+                        </div>
+                        <button onClick={logout} className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 transition-colors">
+                            <LogOut className="h-4 w-4" />
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div className="container mx-auto px-4 py-8 max-w-5xl">
+                {/* Doctor Identity Card */}
+                <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-[2rem] p-6 mb-8 shadow-2xl shadow-indigo-600/20 flex items-center gap-5">
+                    <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-4xl font-black shrink-0">
+                        {profile?.doctorName?.charAt(0) || user?.username?.charAt(0) || "D"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <h2 className="text-2xl font-black truncate">{profile?.doctorName || user?.username}</h2>
+                            {profile?.verified && <BadgeCheck className="h-5 w-5 text-indigo-300 flex-shrink-0" />}
+                        </div>
+                        <p className="text-indigo-200 text-sm font-bold">{profile?.qualification || "Veterinary Professional"} · {profile?.specialization || "General Practice"}</p>
+                        <div className="flex items-center gap-4 mt-2 flex-wrap">
+                            {profile?.location && <span className="flex items-center gap-1 text-xs text-indigo-200"><MapPin className="h-3 w-3" />{profile.location}</span>}
+                            {profile?.contactNumber && <span className="flex items-center gap-1 text-xs text-indigo-200"><Phone className="h-3 w-3" />{profile.contactNumber}</span>}
+                            {profile?.yearsOfExperience > 0 && <span className="flex items-center gap-1 text-xs text-indigo-200"><Award className="h-3 w-3" />{profile.yearsOfExperience} yrs exp</span>}
+                        </div>
+                    </div>
+                    {/* Quick availability toggle */}
+                    <div className="hidden sm:flex flex-col gap-1.5 shrink-0">
+                        {["Available","Busy","Offline"].map(s => (
+                            <button key={s} onClick={() => setAvailability(s)}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${profile?.availabilityStatus === s ? "bg-white text-indigo-700" : "bg-white/10 text-white hover:bg-white/20"}`}>
+                                {s}
                             </button>
-                        </form>
-                    </div>
-                )}
-
-                {activeTab === "patients" && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {patients.length === 0 ? (
-                            <div className="col-span-full py-12 text-center text-muted-foreground bg-card border border-dashed rounded-xl">
-                                No patients assigned yet.
-                            </div>
-                        ) : (
-                            patients.map((record) => (
-                                <div key={record._id} className="bg-card border border-border rounded-xl p-6 shadow-sm">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div>
-                                            <h3 className="font-bold text-lg">{record.petName}</h3>
-                                            <p className="text-sm text-muted-foreground">Owner: {record.userId?.username}</p>
-                                        </div>
-                                        <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
-                                            {new Date(record.date).toLocaleDateString()}
-                                        </span>
-                                    </div>
-                                    <div className="p-3 bg-muted/30 rounded-lg text-sm text-foreground mb-4 italic">
-                                        "{record.treatmentNotes}"
-                                    </div>
-                                    <button 
-                                        onClick={() => { setSelectedPatient(record); setShowNoteModal(true); }}
-                                        className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
-                                    >
-                                        <Clipboard className="h-3 w-3" /> Add New Note
-                                    </button>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                )}
-            </main>
-
-            {/* Note Modal */}
-            {showNoteModal && (
-                <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md shadow-2xl">
-                        <h2 className="text-xl font-bold mb-4">Treatment Note for {selectedPatient?.petName}</h2>
-                        <form onSubmit={handleAddNote}>
-                            <textarea 
-                                value={treatmentNote}
-                                onChange={(e)=>setTreatmentNote(e.target.value)}
-                                placeholder="Describe symptoms, treatment, and medication..."
-                                className="w-full h-32 p-4 rounded-lg border border-input bg-background mb-4 resize-none"
-                                required
-                            />
-                            <div className="flex gap-3">
-                                <button type="submit" className="flex-1 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90">
-                                    Save Note
-                                </button>
-                                <button type="button" onClick={()=>setShowNoteModal(false)} className="flex-1 py-2 bg-muted text-muted-foreground rounded-lg font-medium hover:bg-muted/80">
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
+                        ))}
                     </div>
                 </div>
+
+                {/* Stats Row */}
+                <div className="grid grid-cols-3 gap-4 mb-8">
+                    {[
+                        { label: "Total Appointments", value: appointments.length, icon: "📅" },
+                        { label: "Pending", value: appointments.filter(a => a.status === "pending").length, icon: "⏳" },
+                        { label: "Completed", value: appointments.filter(a => a.status === "completed").length, icon: "✅" },
+                    ].map(s => (
+                        <div key={s.label} className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm text-center">
+                            <div className="text-3xl mb-1">{s.icon}</div>
+                            <div className="text-2xl font-black text-slate-900">{s.value}</div>
+                            <div className="text-xs font-bold text-slate-400 mt-0.5">{s.label}</div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Tabs */}
+                <div className="flex items-center gap-2 mb-8 p-1.5 bg-white border border-slate-100 rounded-2xl shadow-sm w-fit">
+                    {tabs.map(t => (
+                        <button key={t.id} onClick={() => setActiveTab(t.id)}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === t.id ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-slate-500 hover:text-slate-800"}`}>
+                            {t.icon} {t.label}
+                            {t.count > 0 && <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ml-1 ${activeTab === t.id ? "bg-white/20 text-white" : "bg-amber-100 text-amber-700"}`}>{t.count}</span>}
+                        </button>
+                    ))}
+                </div>
+
+                {/* ── PROFILE TAB ────────────────────────────────────────── */}
+                {activeTab === "profile" && (
+                    <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm">
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                            <h3 className="font-black text-slate-900">Professional Details</h3>
+                            <div className="flex items-center gap-2">
+                                {saveMsg && <span className="text-xs text-green-600 font-bold flex items-center gap-1"><CheckCircle className="h-3 w-3" />{saveMsg}</span>}
+                                {editMode ? (
+                                    <>
+                                        <button onClick={saveProfile} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20">
+                                            <Save className="h-4 w-4" /> Save
+                                        </button>
+                                        <button onClick={() => setEditMode(false)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-sm font-bold">Cancel</button>
+                                    </>
+                                ) : (
+                                    <button onClick={() => setEditMode(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-sm font-black hover:bg-slate-200 transition-all">
+                                        <Pencil className="h-4 w-4" /> Edit
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        <div className="p-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <Field label="Full Name" value={profile?.doctorName} onChange={e => setProfile({...profile, doctorName: e.target.value})} readOnly={!editMode} />
+                                <Field label="Qualification" value={profile?.qualification} onChange={e => setProfile({...profile, qualification: e.target.value})} placeholder="e.g. BVSc & AH" readOnly={!editMode} />
+                                <Field label="Specialization" value={profile?.specialization} onChange={e => setProfile({...profile, specialization: e.target.value})} readOnly={!editMode} />
+                                <Field label="Clinic / Hospital Name" value={profile?.clinicName} onChange={e => setProfile({...profile, clinicName: e.target.value})} readOnly={!editMode} />
+                                <Field label="Location" value={profile?.location} onChange={e => setProfile({...profile, location: e.target.value})} readOnly={!editMode} />
+                                <Field label="Contact Number" value={profile?.contactNumber} onChange={e => setProfile({...profile, contactNumber: e.target.value})} readOnly={!editMode} />
+                                <Field label="Years of Experience" type="number" value={profile?.yearsOfExperience} onChange={e => setProfile({...profile, yearsOfExperience: e.target.value})} readOnly={!editMode} />
+                            </div>
+
+                            {/* Availability section */}
+                            <div className="mt-6 p-4 bg-slate-50 rounded-2xl">
+                                <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Availability Status</p>
+                                <div className="flex gap-2 flex-wrap">
+                                    {[
+                                        { s: "Available", color: "bg-green-500", hover: "hover:bg-green-500" },
+                                        { s: "Busy", color: "bg-amber-500", hover: "hover:bg-amber-500" },
+                                        { s: "Offline", color: "bg-slate-500", hover: "hover:bg-slate-500" },
+                                    ].map(({ s, color, hover }) => (
+                                        <button key={s} onClick={() => setAvailability(s)}
+                                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all ${profile?.availabilityStatus === s ? `${color} text-white shadow-md` : `bg-white border border-slate-200 text-slate-600 ${hover} hover:text-white hover:border-transparent`}`}>
+                                            <span className={`w-2 h-2 rounded-full ${profile?.availabilityStatus === s ? "bg-white" : color}`} />
+                                            {s}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── APPOINTMENTS TAB ─────────────────────────────────────── */}
+                {activeTab === "appointments" && (
+                    <div className="space-y-4">
+                        {/* Filter Bar */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {["all","pending","confirmed","completed","cancelled"].map(f => (
+                                <button key={f} onClick={() => setApptFilter(f)}
+                                    className={`px-4 py-2 rounded-xl text-xs font-black capitalize transition-all ${apptFilter === f ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20" : "bg-white border border-slate-200 text-slate-600 hover:border-indigo-300"}`}>
+                                    {f === "all" ? "All" : f} {f !== "all" && `(${appointments.filter(a => a.status === f).length})`}
+                                </button>
+                            ))}
+                        </div>
+
+                        {filteredAppts.length === 0 ? (
+                            <div className="py-16 text-center bg-white rounded-[2rem] border border-dashed border-slate-200">
+                                <Calendar className="h-10 w-10 text-slate-300 mx-auto mb-3" />
+                                <p className="text-slate-400 font-bold">No appointments found</p>
+                            </div>
+                        ) : filteredAppts.map(appt => (
+                            <div key={appt._id} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center shrink-0 text-2xl">
+                                            🐾
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <h3 className="font-black text-slate-900">{appt.petName}</h3>
+                                                <StatusBadge status={appt.status} />
+                                            </div>
+                                            <p className="text-sm text-slate-500 mt-0.5">Owner: <span className="font-bold text-slate-700">{appt.userId?.username}</span> · {appt.userId?.email}</p>
+                                            <p className="text-xs text-slate-400 mt-1 line-clamp-1">📋 {appt.reason}</p>
+                                            <div className="flex items-center gap-4 mt-1.5">
+                                                <span className="text-xs text-slate-400 flex items-center gap-1"><Clock className="h-3 w-3"/>{appt.preferredDate} {appt.preferredTime}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setManageAppt(appt)}
+                                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-600 text-sm font-black hover:bg-indigo-100 transition-colors shrink-0">
+                                        <Pencil className="h-3.5 w-3.5" /> Manage
+                                    </button>
+                                </div>
+                                {appt.doctorNotes && (
+                                    <div className="mt-3 px-4 py-3 bg-slate-50 rounded-xl text-sm text-slate-700 border-l-4 border-indigo-400">
+                                        <span className="font-bold text-slate-500 text-xs uppercase tracking-wide">Notes: </span>{appt.doctorNotes}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* ── USERS / PATIENTS TAB ────────────────────────────────── */}
+                {activeTab === "users" && (
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-sm font-black text-slate-500 uppercase tracking-widest">{users.length} Registered Users</p>
+                        </div>
+                        {users.length === 0 ? (
+                            <div className="py-16 text-center bg-white rounded-[2rem] border border-dashed border-slate-200">
+                                <Users className="h-10 w-10 text-slate-300 mx-auto mb-3" />
+                                <p className="text-slate-400 font-bold">No users registered yet</p>
+                            </div>
+                        ) : users.map(u => (
+                            <div key={u._id} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-xl font-black text-primary shrink-0">
+                                    {u.username?.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-black text-slate-900 truncate">{u.username}</p>
+                                    <p className="text-sm text-slate-400 truncate">{u.email}</p>
+                                    {u.profile?.location && <p className="text-xs text-slate-300 mt-0.5 truncate">📍 {u.profile.location}</p>}
+                                    {u.profile?.pets && u.profile.pets.length > 0 && (
+                                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                            {u.profile.pets.map((pet, i) => (
+                                                <span key={i} className="flex items-center gap-1 text-[10px] font-black bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">
+                                                    <PawPrint className="h-2.5 w-2.5" />{typeof pet === "string" ? pet : pet.name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex flex-col items-end gap-2 shrink-0">
+                                    <span className="text-[10px] font-black bg-green-100 text-green-600 px-2 py-1 rounded-full">User</span>
+                                    <span className="text-xs text-slate-300">{appointments.filter(a => a.userId?._id === String(u._id)).length} appts</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Appointment Modal */}
+            {manageAppt && (
+                <AppointmentModal
+                    appt={manageAppt}
+                    onClose={() => setManageAppt(null)}
+                    onSave={() => { setManageAppt(null); loadData(); }}
+                />
             )}
         </div>
     );

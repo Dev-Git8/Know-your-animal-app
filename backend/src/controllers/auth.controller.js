@@ -110,9 +110,8 @@ const loginUser = async (req, res) => {
 // ── Logout ───────────────────────────────────────────────────────────
 const logoutUser = async (_req, res) => {
     try {
-        res.cookie("token", "", {
+        res.clearCookie("token", {
             httpOnly: true,
-            expires: new Date(0),
             path: "/",
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",

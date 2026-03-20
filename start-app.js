@@ -4,9 +4,9 @@ const path = require('path');
 console.log("🚀 Starting Know Your Animal App...");
 
 // Start Backend
-console.log("📂 Starting Backend (Port 3000)...");
-const backend = spawn('node', ['server.js'], {
-  cwd: path.join(__dirname, 'backend'),
+console.log("📂 Starting Backend (Flask on Port 3000)...");
+const backend = spawn('python', ['app.py'], {
+  cwd: __dirname,
   stdio: 'inherit',
   shell: true
 });

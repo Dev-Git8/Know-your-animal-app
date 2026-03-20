@@ -10,10 +10,11 @@ const api = axios.create({
 
 // ── Auth API calls ───────────────────────────────────────────────────
 
-export const registerUser = async ({ username, email, password, role }) => {
+export const registerUser = async ({ username, email, phone, password, role }) => {
     const { data } = await api.post("/auth/register", {
         username,
         email,
+        phone,
         password,
         role,
     });
@@ -27,6 +28,26 @@ export const loginUser = async ({ email, password }) => {
 
 export const loginDoctor = async ({ email, password }) => {
     const { data } = await api.post("/auth/login-doctor", { email, password });
+    return data;
+};
+
+export const loginMobile = async ({ phoneNumber, otp }) => {
+    const { data } = await api.post("/auth/login-mobile", { phoneNumber, otp });
+    return data;
+};
+
+export const sendOtp = async (phoneNumber) => {
+    const { data } = await api.post("/auth/send-otp", { phoneNumber });
+    return data;
+};
+
+export const forgotPassword = async (email) => {
+    const { data } = await api.post("/auth/forgot-password", { email });
+    return data;
+};
+
+export const resetPassword = async ({ token, newPassword }) => {
+    const { data } = await api.post("/auth/reset-password", { token, newPassword });
     return data;
 };
 
@@ -87,5 +108,9 @@ export const getDoctorPatients = async () => {
 export const addTreatmentNote = (data) => api.post("/doctor/treatment-notes", data);
 
 export const getPublicDoctors = () => api.get("/auth/public/doctors");
+
+// ── Appointment API calls ────────────────────────────────────────────────
+export const bookAppointment = (apptData) => api.post("/appointments", apptData);
+export const getMyAppointments = () => api.get("/appointments/my");
 
 export default api;

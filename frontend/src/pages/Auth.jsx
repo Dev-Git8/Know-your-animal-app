@@ -1,17 +1,22 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, User, Eye, EyeOff, ArrowLeft } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { Mail, Lock, User as UserIcon, Eye, EyeOff, ArrowLeft, Phone, KeyRound, ShieldCheck, UserCheck, Stethoscope } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { forgotPassword } from "@/integrations/authApi";
+import { toast } from "sonner";
 
 const Auth = () => {
+  const [role, setRole] = useState("user"); // "user", "doctor", "admin"
   const [isLogin, setIsLogin] = useState(true);
+  const [loginMethod, setLoginMethod] = useState("email"); // "email" or "phone"
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({ name: "", email: "", password: "", role: "user" });
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [formData, setFormData] = useState({ name: "", email: "", password: "", phone: "", otp: "" });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const navigate = useNavigate();
-  const { user, login, adminLogin, doctorLogin, register } = useAuth();
+  const { user, login, adminLogin, doctorLogin, register, loginMobile, sendOtp } = useAuth();
 
   useEffect(() => {
     if (user) {
@@ -26,6 +31,36 @@ const Auth = () => {
     setError("");
   };
 
+  const handleSendOtp = async () => {
+    if (!formData.phone) {
+      setError("Please enter your phone number");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await sendOtp(formData.phone);
+      setShowOtpInput(true);
+      toast.success("OTP sent successfully!");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to send OTP");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      setError("Please enter your email first");
+      return;
+    }
+    try {
+      const res = await forgotPassword(formData.email);
+      toast.success("Password reset link sent to your email!");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to process request");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -33,180 +68,213 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        if (formData.role === "admin") {
-          await adminLogin({ email: formData.email, password: formData.password });
-        } else if (formData.role === "doctor") {
-          await doctorLogin({ email: formData.email, password: formData.password });
+        if (loginMethod === "phone" && role !== "admin") {
+          await loginMobile({ phoneNumber: formData.phone, otp: formData.otp });
         } else {
-          await login({ email: formData.email, password: formData.password });
+          if (role === "admin") {
+            await adminLogin({ email: formData.email, password: formData.password });
+          } else if (role === "doctor") {
+            await doctorLogin({ email: formData.email, password: formData.password });
+          } else {
+            await login({ email: formData.email, password: formData.password });
+          }
         }
       } else {
         await register({
           username: formData.name,
           email: formData.email,
+          phone: formData.phone,
           password: formData.password,
-          role: formData.role,
+          role: role,
         });
       }
-      // Redirection is handled by the useEffect above
     } catch (err) {
-      const message =
-        err.response?.data?.message || "Something went wrong. Please try again.";
+      const message = err.response?.data?.message || "Something went wrong. Please try again.";
       setError(message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const roleConfig = {
+    user: { title: "Pet Owner", icon: <UserCheck className="h-6 w-6" />, color: "primary" },
+    doctor: { title: "Veterinary Expert", icon: <Stethoscope className="h-6 w-6" />, color: "indigo-600" },
+    admin: { title: "Administrator", icon: <ShieldCheck className="h-6 w-6" />, color: "slate-900" }
+  };
+
   return (
-    <div className="min-h-screen bg-muted/40 flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-72 h-72 bg-primary/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/5 rounded-full translate-x-1/3 translate-y-1/3" />
-      <div className="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-accent/30 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl opacity-50" />
-      <div className="w-full max-w-sm relative z-10">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8 text-sm"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Home
-        </Link>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12 relative overflow-hidden font-inter">
+      {/* Decorative Blur Elements */}
+      <div className={`absolute top-0 left-0 w-80 h-80 bg-${roleConfig[role].color}/5 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl`} />
+      <div className={`absolute bottom-0 right-0 w-96 h-96 bg-${roleConfig[role].color}/5 rounded-full translate-x-1/3 translate-y-1/3 blur-3xl`} />
+      
+      <div className="w-full max-w-lg relative z-10">
+        <div className="bg-white/80 backdrop-blur-2xl p-10 rounded-[2.5rem] shadow-2xl border border-white/40">
+          <Link to="/" className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors mb-8 text-sm font-bold">
+            <ArrowLeft className="h-4 w-4" /> Back to Home
+          </Link>
 
-        <div className="mb-8 text-center">
-          <h1 className="font-display text-2xl font-bold text-foreground">
-            {isLogin ? "Welcome back" : "Create an account"}
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {isLogin
-              ? "Enter your credentials to sign in"
-              : "Fill in the details to get started"}
-          </p>
-        </div>
-
-        {error && (
-          <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-            {error}
+          {/* Role Selection */}
+          <div className="mb-10">
+            <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 ml-1">Select Your Role</h2>
+            <div className="grid grid-cols-3 gap-3 p-1.5 bg-slate-100/50 rounded-2xl border border-slate-200/50">
+              {Object.entries(roleConfig).map(([key, config]) => (
+                <button
+                  key={key}
+                  disabled={!isLogin && key === "admin"}
+                  onClick={() => { setRole(key); setLoginMethod("email"); setError(""); }}
+                  className={`flex flex-col items-center gap-2 py-4 px-2 rounded-xl transition-all ${role === key ? `bg-white text-${config.color} shadow-lg ring-1 ring-slate-200` : "text-slate-500 hover:bg-white/50"} ${!isLogin && key === "admin" ? "opacity-30 cursor-not-allowed" : ""}`}
+                >
+                  {config.icon}
+                  <span className="text-[10px] font-black uppercase tracking-tighter">{config.title}</span>
+                </button>
+              ))}
+            </div>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {!isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">
-                Full Name
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Your name"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-background border border-input text-foreground placeholder:text-muted-foreground/60 outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition-all text-sm"
-                />
-              </div>
+          <div className="mb-8 text-center">
+            <h1 className={`text-4xl font-black text-slate-900 tracking-tight mb-2`}>
+              {isLogin ? "Welcome back" : "Join our Registry"}
+            </h1>
+            <p className="text-slate-500 text-sm font-medium">
+              Access the {roleConfig[role].title} Workspace
+            </p>
+          </div>
+
+          {isLogin && role !== "admin" && (
+            <div className="flex p-1 bg-slate-100 rounded-xl mb-6">
+              <button
+                 type="button"
+                 onClick={() => setLoginMethod("email")}
+                 className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${loginMethod === "email" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+              > Email </button>
+              <button
+                 type="button"
+                 onClick={() => setLoginMethod("phone")}
+                 className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${loginMethod === "phone" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+              > Mobile </button>
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">
-              Login As / Sign Up As
-            </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, role: "user" })}
-                className={`flex-1 py-2 rounded-lg border text-xs font-bold transition-all ${formData.role === "user" ? "bg-primary text-white border-primary shadow-lg" : "bg-white text-slate-500 border-slate-200"}`}
-              >
-                Owner
-              </button>
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, role: "doctor" })}
-                className={`flex-1 py-2 rounded-lg border text-xs font-bold transition-all ${formData.role === "doctor" ? "bg-indigo-600 text-white border-indigo-600 shadow-lg" : "bg-white text-slate-500 border-slate-200"}`}
-              >
-                Doctor
-              </button>
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, role: "admin" })}
-                className={`flex-1 py-2 rounded-lg border text-xs font-bold transition-all ${formData.role === "admin" ? "bg-slate-900 text-white border-slate-900 shadow-lg" : "bg-white text-slate-500 border-slate-200"}`}
-              >
-                Admin
-              </button>
+          {error && (
+            <div className="mb-8 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-bold animate-in fade-in slide-in-from-top-2">
+              {error}
             </div>
-          </div>
+          )}
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">
-              Email
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="you@example.com"
-                required
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-background border border-input text-foreground placeholder:text-muted-foreground/60 outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition-all text-sm"
-              />
-            </div>
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {!isLogin && (
+              <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1 tracking-widest">Full Name</label>
+                <div className="relative">
+                  <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <input
+                    type="text" name="name" value={formData.name} onChange={handleChange} placeholder="John Doe"
+                    className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white border border-slate-200 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all text-[15px] font-medium"
+                  />
+                </div>
+              </div>
+            )}
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">
-              Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                required
-                className="w-full pl-10 pr-10 py-2.5 rounded-lg bg-background border border-input text-foreground placeholder:text-muted-foreground/60 outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition-all text-sm"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
+            {(!isLogin || (isLogin && loginMethod === "email")) && (
+              <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1 tracking-widest">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <input
+                    type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@office.com" 
+                    required={!isLogin || (isLogin && loginMethod === "email")}
+                    className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white border border-slate-200 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all text-[15px] font-medium"
+                  />
+                </div>
+              </div>
+            )}
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSubmitting
-              ? "Please wait..."
-              : isLogin
-                ? "Sign In"
-                : "Create Account"}
-          </button>
-        </form>
+            {!isLogin && (
+              <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1 tracking-widest">Phone Number (Optional)</label>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <input
+                    type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+91 XXXXX XXXXX"
+                    className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white border border-slate-200 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all text-[15px] font-medium"
+                  />
+                </div>
+              </div>
+            )}
 
-        <p className="mt-6 text-center text-muted-foreground text-sm">
-          {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <button
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setError("");
-            }}
-            className="text-primary font-medium hover:underline"
-          >
-            {isLogin ? "Sign Up" : "Sign In"}
-          </button>
-        </p>
+            {isLogin && loginMethod === "phone" && role !== "admin" && (
+              <div className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1 tracking-widest">Phone Number</label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                    <input
+                      type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+91 XXXXX XXXXX"
+                      className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white border border-slate-200 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all text-[15px] font-medium"
+                    />
+                    {!showOtpInput && (
+                      <button
+                        type="button" onClick={handleSendOtp} disabled={isSubmitting}
+                        className="absolute right-3 top-2 bottom-2 px-4 rounded-xl bg-primary text-white text-xs font-black uppercase hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                      > Send OTP </button>
+                    )}
+                  </div>
+                </div>
 
+                {showOtpInput && (
+                  <div className="animate-in fade-in slide-in-from-top-4">
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1 tracking-widest">Verification Code</label>
+                    <div className="relative">
+                      <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                      <input
+                        type="text" name="otp" value={formData.otp} onChange={handleChange} placeholder="6-digit code" maxLength={6}
+                        className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 border-slate-200 focus:border-primary outline-none transition-all tracking-[1em] text-center font-black text-2xl"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {(!isLogin || (isLogin && loginMethod === "email")) && (
+              <div className="animate-in fade-in duration-300">
+                <div className="flex justify-between items-center mb-2 ml-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Password</label>
+                  {isLogin && (
+                    <button type="button" onClick={handleForgotPassword} className="text-xs text-primary font-black hover:underline">
+                      Forgot Password?
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <input
+                    type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" required
+                    className="w-full pl-12 pr-12 py-4 rounded-2xl bg-white border border-slate-200 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all text-[15px] font-medium"
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <button
+              type="submit" disabled={isSubmitting}
+              className={`w-full py-5 rounded-[1.5rem] bg-${roleConfig[role].color} text-white font-black hover:opacity-90 transition-all text-md mt-4 shadow-2xl shadow-${roleConfig[role].color}/20 active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2`}
+            >
+              {isSubmitting ? <span className="animate-pulse">Authenticating...</span> : (isLogin ? "Sign In Now" : "Create Registry Account")}
+            </button>
+          </form>
+
+          <p className="mt-10 text-center text-slate-500 text-sm font-bold">
+            {isLogin ? "Need a platform account? " : "Already have an workspace? "}
+            <button onClick={() => { setIsLogin(!isLogin); setRole("user"); setError(""); }} className="text-primary font-black hover:underline">
+              {isLogin ? "Join Now" : "Sign In"}
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );

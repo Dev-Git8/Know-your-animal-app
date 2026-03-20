@@ -1,5 +1,3 @@
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
 const SYSTEM_PROMPT = `You are "Know Your Animal" — a friendly, knowledgeable veterinary assistant specializing in animal healthcare. You help farmers, pet owners, and animal caretakers in India.
 
 Your expertise covers:
@@ -17,6 +15,7 @@ Guidelines:
 
 exports.chat = async (req, res) => {
     try {
+        const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
         const { messages } = req.body;
 
         if (!GEMINI_API_KEY) {

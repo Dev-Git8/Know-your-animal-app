@@ -8,6 +8,8 @@ import {
     getAdminProfile,
     adminLogin as apiAdminLogin,
     loginDoctor as apiDoctorLogin,
+    loginMobile as apiLoginMobile,
+    sendOtp as apiSendOtp,
 } from "@/integrations/authApi";
 
 const AuthContext = createContext(undefined);
@@ -78,7 +80,7 @@ export const AuthProvider = ({ children }) => {
             sessionStorage.clear();
             
             // Force a hard reload to clear all memory states and redirect
-            window.location.href = "/auth";
+            window.location.href = "/";
         }
     };
 
@@ -95,8 +97,18 @@ export const AuthProvider = ({ children }) => {
         return data;
     };
 
+    const loginMobile = async (credentials) => {
+        const data = await apiLoginMobile(credentials);
+        setUser(data.user);
+        return data;
+    };
+
+    const sendOtp = async (phoneNumber) => {
+        return await apiSendOtp(phoneNumber);
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, adminLogin, doctorLogin, register, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, adminLogin, doctorLogin, loginMobile, sendOtp, register, logout }}>
             {children}
         </AuthContext.Provider>
     );

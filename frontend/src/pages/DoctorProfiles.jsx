@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Phone, Mail, MapPin, Calendar, Award, Briefcase, 
-  Hospital, CheckCircle2, XCircle, Search, Filter, 
-  Star, Clock, ChevronRight, UserPlus
+  Phone, MapPin, Hospital, Search, Filter, 
+  Star, Briefcase, ChevronRight, CheckCircle2, AlertCircle, Info,
+  CalendarDays, XCircle, Clock
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -12,46 +12,176 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getPublicDoctors } from "@/integrations/authApi";
-import { useEffect } from "react";
+import { getPublicDoctors, bookAppointment } from "@/integrations/authApi";
+
+// ── Book Appointment Modal ────────────────────────────────────────────────
+const BookingModal = ({ doctor, onClose }) => {
+  const [form, setForm] = useState({ petName: "", reason: "", preferredDate: "", preferredTime: "" });
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await bookAppointment({ ...form, doctorId: doctor.id });
+      setDone(true);
+    } catch (err) {
+      if (err.response?.status === 401) {
+        alert("Please log in as a user to book an appointment.");
+      } else {
+        alert("Booking failed. Please try again.");
+      }
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+        {done ? (
+          <div className="p-10 text-center">
+            <div className="text-5xl mb-4">🎉</div>
+            <h3 className="text-xl font-black text-slate-900 mb-2">Appointment Requested!</h3>
+            <p className="text-slate-500 text-sm mb-6">Dr. {doctor.name} will confirm your appointment shortly.</p>
+            <button onClick={onClose} className="px-6 py-3 rounded-2xl bg-primary text-white font-black hover:bg-primary/90 transition-all">Done</button>
+          </div>
+        ) : (
+          <>
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h2 className="font-black text-slate-900 text-lg">Book Appointment</h2>
+                <p className="text-sm text-slate-400">with Dr. {doctor.name}</p>
+              </div>
+              <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100"><XCircle className="h-5 w-5 text-slate-400" /></button>
+            </div>
+            <form onSubmit={submit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Pet Name</label>
+                <input value={form.petName} onChange={e => setForm({...form, petName: e.target.value})} required placeholder="e.g. Tommy, Daisy"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+              </div>
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Reason for Visit</label>
+                <textarea value={form.reason} onChange={e => setForm({...form, reason: e.target.value})} required rows={3} placeholder="Describe symptoms or reason for appointment..."
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Preferred Date</label>
+                  <input type="date" value={form.preferredDate} onChange={e => setForm({...form, preferredDate: e.target.value})} required
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Preferred Time</label>
+                  <select value={form.preferredTime} onChange={e => setForm({...form, preferredTime: e.target.value})} required
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20">
+                    <option value="">Select time</option>
+                    {["09:00 AM","10:00 AM","11:00 AM","12:00 PM","02:00 PM","03:00 PM","04:00 PM","05:00 PM"].map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <button type="submit" disabled={loading}
+                className="w-full py-3.5 rounded-2xl bg-primary text-white font-black text-sm hover:bg-primary/90 transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                {loading ? <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" /> : <CalendarDays className="h-4 w-4" />}
+                {loading ? "Booking..." : "Confirm Appointment"}
+              </button>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const DoctorProfiles = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [bookingDoctor, setBookingDoctor] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("All");
   const [selectedLocation, setSelectedLocation] = useState("All");
-  const [selectedAvailability, setSelectedAvailability] = useState("All");
+  const [userCoords, setUserCoords] = useState(null);
+  const [isLocating, setIsLocating] = useState(false);
+
+  // Approximate coordinates for Indian cities to simulate proximity
+  const cityCoords = {
+    "Kochi": { lat: 9.9312, lon: 76.2673 },
+    "Chennai": { lat: 13.0827, lon: 80.2707 },
+    "Hyderabad": { lat: 17.3850, lon: 78.4867 },
+    "Bangalore": { lat: 12.9716, lon: 77.5946 },
+    "Mysore": { lat: 12.2958, lon: 76.6394 },
+    "Pune": { lat: 18.5204, lon: 73.8567 },
+  };
+
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  const handleUseMyLocation = () => {
+    setIsLocating(true);
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      setIsLocating(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+        setIsLocating(false);
+        toast.success("Location detected! Showing experts near you.");
+      },
+      (err) => {
+        setIsLocating(false);
+        toast.error("Could not get your location. Showing all experts.");
+      }
+    );
+  };
 
   useEffect(() => {
     const fetchDocs = async () => {
       try {
         const { data } = await getPublicDoctors();
-        let docs = data.map(d => ({
-          id: d._id,
-          name: d.doctorName,
-          photo: d.profilePhoto || `https://api.dicebear.com/7.x/avataaars/svg?seed=${d.doctorName}`,
-          qualification: d.qualification,
-          experience: d.yearsOfExperience,
-          specialization: d.specialization,
-          clinic: d.clinicName,
-          location: d.location,
-          contact: d.contactNumber,
-          availability: d.availabilityStatus || "Offline",
-          rating: d.rating || 0,
-          tags: d.specialization ? [d.specialization] : []
-        }));
+        let docs = data.map(d => {
+          const city = Object.keys(cityCoords).find(c => d.location.includes(c));
+          return {
+            id: d._id,
+            name: d.doctorName,
+            photo: d.profilePhoto || `https://api.dicebear.com/7.x/avataaars/svg?seed=${d.doctorName}`,
+            qualification: d.qualification,
+            experience: d.yearsOfExperience,
+            specialization: d.specialization,
+            clinic: d.clinicName,
+            location: d.location,
+            contact: d.contactNumber,
+            availability: d.availabilityStatus || "Offline",
+            rating: d.rating || 0,
+            verified: d.verified,
+            isPlatformSuggested: d.isPlatformSuggested,
+            tags: d.specialization ? [d.specialization] : [],
+            lat: cityCoords[city]?.lat || null,
+            lon: cityCoords[city]?.lon || null
+          };
+        });
 
-        if (docs.length === 0) {
-          docs = [
-            { id: 'f1', name: 'Dr. Ramesh Kumar', specialization: 'Large Animal Specialist', location: 'Bangalore', experience: 12, rating: 4.8, availability: 'Available', clinic: 'Green Valley Vet', qualification: 'MVSc', contact: '9876543210', photo: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=200&h=200', tags: ['Livestock'] },
-            { id: 'f2', name: 'Dr. Priya Sharma', specialization: 'Pet Surgery Specialist', location: 'Mysore', experience: 8, rating: 4.9, availability: 'Available', clinic: 'Paws & Claws', qualification: 'BVSc', contact: '9876543211', photo: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=200&h=200', tags: ['Surgery'] },
-            { id: 'f3', name: 'Dr. Arjun Patel', specialization: 'Livestock Health Expert', location: 'Hubli', experience: 10, rating: 4.7, availability: 'Busy', clinic: 'Rural Animal Hospital', qualification: 'MVSc', contact: '9876543212', photo: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=200&h=200', tags: ['Cows', 'Goats'] },
-            { id: 'f4', name: 'Dr. Sneha Rao', specialization: 'Poultry Disease Specialist', location: 'Mangalore', experience: 7, rating: 4.6, availability: 'Available', clinic: 'Bird Care Center', qualification: 'BVSc', contact: '9876543213', photo: 'https://images.unsplash.com/photo-1559839734-2b71f1536783?auto=format&fit=crop&q=80&w=200&h=200', tags: ['Poultry'] },
-            { id: 'f5', name: 'Dr. Karthik Iyer', specialization: 'Small Animal Medicine', location: 'Chennai', experience: 9, rating: 4.5, availability: 'Offline', clinic: 'City Vet Hub', qualification: 'BVSc', contact: '9876543214', photo: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=200&h=200', tags: ['Cats', 'Dogs'] },
-            { id: 'f6', name: 'Dr. Meera Nair', specialization: 'Dairy Animal Specialist', location: 'Kochi', experience: 11, rating: 4.8, availability: 'Available', clinic: 'Nature Dairy Clinic', qualification: 'MVSc', contact: '9876543215', photo: 'https://images.unsplash.com/photo-1527613426441-4da17471b66d?auto=format&fit=crop&q=80&w=200&h=200', tags: ['Dairy'] },
-          ];
+        // If user location is available, sort by distance
+        if (userCoords) {
+           docs = docs.map(d => ({
+             ...d,
+             distance: d.lat ? calculateDistance(userCoords.lat, userCoords.lon, d.lat, d.lon) : 99999
+           })).sort((a, b) => a.distance - b.distance);
         }
+
         setDoctors(docs);
       } catch (err) {
         console.error("Failed to fetch doctors", err);
@@ -60,11 +190,10 @@ const DoctorProfiles = () => {
       }
     };
     fetchDocs();
-  }, []);
+  }, [userCoords]);
 
   const allTags = ["All", ...new Set(doctors.map(d => d.specialization).filter(Boolean))];
   const allLocations = ["All", ...new Set(doctors.map(d => d.location).filter(Boolean))];
-  const allStatuses = ["All", "Available", "Busy", "Offline"];
 
   const filteredDoctors = doctors.filter(doc => {
     const s = searchTerm.toLowerCase();
@@ -75,293 +204,249 @@ const DoctorProfiles = () => {
     
     const matchesTag = selectedTag === "All" || doc.specialization === selectedTag;
     const matchesLocation = selectedLocation === "All" || doc.location === selectedLocation;
-    const matchesAvailability = selectedAvailability === "All" || doc.availability === selectedAvailability;
 
-    return matchesSearch && matchesTag && matchesLocation && matchesAvailability;
+    return matchesSearch && matchesTag && matchesLocation;
   });
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-slate-50/50 flex flex-col">
+    <div className="min-h-screen bg-slate-50/80 flex flex-col font-inter">
       <Navbar />
       
       <main className="flex-1 pt-24 pb-20">
         <div className="container mx-auto px-4">
-          {/* Header Section */}
-          <div className="relative mb-16">
+          {/* Hero Section */}
+          <div className="mb-12">
             <motion.div 
-              initial={{ opacity: 0, y: -20 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-center space-y-4"
             >
-              <Badge variant="outline" className="px-4 py-1 rounded-full bg-primary/5 text-primary border-primary/20 font-semibold tracking-wider uppercase text-[10px]">
-                Expert Consultations
-              </Badge>
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-slate-900 font-display italic">
-                Our Expert <span className="text-primary not-italic">Veterinarians</span>
+              <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+                Trusted Veterinary <span className="text-primary italic">Professionals</span>
               </h1>
-              <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
-                Connect with highly qualified animal health professionals dedicated to the wellness of your pets and livestock.
+              <p className="text-slate-500 max-w-2xl mx-auto text-lg">
+                Connect with verified experts for your pet's wellness and livestock healthcare.
               </p>
             </motion.div>
           </div>
 
-          {/* Top Rated Section */}
-          <div className="mb-16">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">Top Rated Veterinary Experts <span className="text-primary italic">Near You</span></h2>
-                <p className="text-slate-500 text-sm">Highly recommended professionals based on user feedback.</p>
-              </div>
-              <Button variant="ghost" className="text-primary font-bold hover:bg-primary/5">View All</Button>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-2">
-              {doctors.filter(d => d.rating >= 4.5).slice(0, 2).map(doc => (
-                <motion.div
-                  key={doc.id}
-                  whileHover={{ y: -8, scale: 1.01 }}
-                  className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/40 flex flex-col sm:flex-row gap-8 items-center relative overflow-hidden group/top"
-                >
-                  <div className="absolute top-0 left-0 w-2 h-full bg-primary" />
-                  <div className="relative">
-                    <Avatar className="h-36 w-36 border-4 border-slate-50 shadow-2xl transition-transform duration-500 group-hover/top:scale-105">
-                      <AvatarImage src={doc.photo} className="object-cover" />
-                      <AvatarFallback className="text-2xl font-black bg-slate-100 text-slate-300">{doc.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="absolute -bottom-2 -right-2 bg-slate-900 text-white p-2 rounded-2xl shadow-xl flex items-center gap-1 scale-90 sm:scale-100">
-                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                      <span className="text-sm font-black">{doc.rating}</span>
-                    </div>
-                  </div>
-                  <div className="flex-1 space-y-4 text-center sm:text-left">
-                    <div>
-                      <h3 className="text-2xl font-black text-slate-900 mb-1">{doc.name}</h3>
-                      <p className="text-sm font-bold text-primary uppercase tracking-[0.2em]">{doc.specialization}</p>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-slate-500 text-sm font-medium justify-center sm:justify-start">
-                        <MapPin className="h-4 w-4 text-slate-300" /> {doc.location}
-                      </div>
-                      <div className="flex items-center gap-2 text-slate-500 text-sm font-medium justify-center sm:justify-start">
-                        <Hospital className="h-4 w-4 text-slate-300" /> {doc.clinic}
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2 pt-2 justify-center sm:justify-start">
-                      <Badge className="bg-emerald-500 text-white border-none py-1.5 px-4 rounded-xl shadow-lg shadow-emerald-100">{doc.availability}</Badge>
-                      <Badge variant="outline" className="border-slate-200 text-slate-500 bg-slate-50/50 py-1.5 px-4 rounded-xl">{doc.experience} Years Exp</Badge>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+          {/* Disclaimer */}
+          <div className="max-w-4xl mx-auto mb-8">
+            <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl flex items-center gap-3 text-amber-800 text-sm shadow-sm">
+                <Info className="h-4 w-4 shrink-0 text-amber-600" />
+                <p><strong>Note:</strong> Some profiles are aggregated for user convenience. Look for the <span className="font-bold">Verified</span> badge for authenticated experts.</p>
             </div>
           </div>
 
           {/* Filters & Search */}
-          <div className="max-w-4xl mx-auto mb-12 space-y-6">
-            <div className="flex flex-col md:flex-row gap-4 items-center">
-              <div className="relative flex-1 group w-full">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+          <div className="max-w-5xl mx-auto mb-16 space-y-8">
+            <div className="flex flex-col md:flex-row gap-4 items-stretch group">
+              <div className="relative flex-1 shadow-2xl shadow-slate-200/50 rounded-2xl">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-primary transition-colors" />
                 <Input
-                  placeholder="Search by name, specialization, or clinic..."
-                  className="pl-12 pr-4 py-6 rounded-2xl border-slate-200 bg-white shadow-sm focus-visible:ring-primary/20 transition-all text-base"
+                  placeholder="Search by name, specialization, or location..."
+                  className="pl-14 pr-4 py-8 rounded-2xl border-none bg-white focus-visible:ring-primary/20 transition-all text-lg font-medium"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-                <Button variant="outline" className="rounded-xl border-slate-200 bg-white flex shrink-0">
-                  <Filter className="h-4 w-4 mr-2" /> Filters
-                </Button>
-              </div>
+              <Button 
+                onClick={handleUseMyLocation} 
+                disabled={isLocating}
+                variant="outline" 
+                className="rounded-2xl border-none bg-white h-auto px-8 font-black text-primary shadow-2xl shadow-slate-200/50 hover:bg-primary/5 active:scale-[0.98] transition-all flex items-center gap-3 py-4 md:py-0"
+              >
+                <MapPin className={`h-6 w-6 ${isLocating ? 'animate-bounce' : ''}`} /> 
+                {isLocating ? "Detecting..." : "Find Nearest Expert"}
+              </Button>
             </div>
 
-            <div className="flex flex-col gap-4">
-              <div className="space-y-2">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Specialization</p>
-                <div className="flex flex-wrap gap-2">
-                  {allTags.map(tag => (
-                    <button
-                      key={tag}
-                      onClick={() => setSelectedTag(tag)}
-                      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                        selectedTag === tag 
-                        ? "bg-slate-900 text-white shadow-md scale-105" 
-                        : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
-                      }`}
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+               <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                   <Filter className="h-3 w-3" /> Specialization
+                 </p>
+                 <div className="flex flex-wrap gap-2">
+                   {allTags.map(tag => (
+                     <button
+                       key={tag}
+                       onClick={() => setSelectedTag(tag)}
+                       className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                         selectedTag === tag 
+                         ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105" 
+                         : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-100"
+                       }`}
+                     >
+                       {tag}
+                     </button>
+                   ))}
+                 </div>
+               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Location</p>
-                  <div className="flex flex-wrap gap-2">
-                    {allLocations.map(loc => (
-                      <button
-                        key={loc}
-                        onClick={() => setSelectedLocation(loc)}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                          selectedLocation === loc 
-                          ? "bg-indigo-600 text-white shadow-sm" 
-                          : "bg-white border text-slate-500 hover:bg-slate-50"
-                        }`}
-                      >
-                        {loc}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Availability</p>
-                  <div className="flex flex-wrap gap-2">
-                    {allStatuses.map(status => (
-                      <button
-                        key={status}
-                        onClick={() => setSelectedAvailability(status)}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                          selectedAvailability === status 
-                          ? "bg-emerald-600 text-white shadow-sm" 
-                          : "bg-white border text-slate-500 hover:bg-slate-50"
-                        }`}
-                      >
-                        {status}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+               <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                   <MapPin className="h-3 w-3" /> Location
+                 </p>
+                 <div className="flex flex-wrap gap-2">
+                   {allLocations.map(loc => (
+                     <button
+                       key={loc}
+                       onClick={() => setSelectedLocation(loc)}
+                       className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                         selectedLocation === loc 
+                         ? "bg-slate-800 text-white shadow-lg scale-105" 
+                         : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-100"
+                       }`}
+                     >
+                       {loc}
+                     </button>
+                   ))}
+                 </div>
+               </div>
             </div>
           </div>
 
-          {/* Doctor Grid */}
-          <motion.div 
-            layout
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
+          {/* Top Rated Section */}
+          <div className="mb-12">
+             <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
+               <Star className="h-6 w-6 text-amber-400 fill-amber-400" />
+               Top Rated Veterinary Experts Near You
+             </h2>
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+               {doctors.filter(d => d.rating >= 4.0).slice(0, 2).map(doc => (
+                 <Card key={doc.id} className="bg-white p-6 rounded-[2.5rem] border-slate-200 shadow-xl flex flex-col sm:flex-row items-center gap-8 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-0" />
+                    <Avatar className="h-32 w-32 border-4 border-white shadow-2xl relative z-10">
+                      <AvatarImage src={doc.photo} className="object-cover" />
+                      <AvatarFallback className="bg-slate-100 text-2xl font-black">{doc.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 space-y-4 relative z-10 text-center sm:text-left">
+                       <div>
+                         <div className="flex flex-wrap gap-2 mb-2 justify-center sm:justify-start">
+                           {doc.verified ? (
+                             <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 flex items-center gap-1 py-1 px-3">
+                               <CheckCircle2 className="h-3.5 w-3.5" /> Verified
+                             </Badge>
+                           ) : doc.isPlatformSuggested ? (
+                             <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-100 flex items-center gap-1 py-1 px-3">
+                               <AlertCircle className="h-3.5 w-3.5" /> Platform Suggested
+                             </Badge>
+                           ) : null}
+                         </div>
+                         <h3 className="text-2xl font-black text-slate-900">{doc.name}</h3>
+                         <p className="text-primary font-bold text-sm uppercase tracking-widest">{doc.specialization}</p>
+                       </div>
+                       <div className="flex flex-wrap gap-4 text-sm text-slate-500 font-medium justify-center sm:justify-start">
+                         <div className="flex items-center gap-1.5"><MapPin className="h-4 w-4" /> {doc.location}</div>
+                         <div className="flex items-center gap-1.5"><Hospital className="h-4 w-4" /> {doc.clinic}</div>
+                       </div>
+                       <div className="flex items-center gap-1.5 bg-amber-50 w-fit px-3 py-1 rounded-full border border-amber-100 mx-auto sm:mx-0">
+                         <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                         <span className="font-black text-amber-700">{doc.rating}</span>
+                       </div>
+                    </div>
+                 </Card>
+               ))}
+             </div>
+          </div>
+
+          {/* All Doctors Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <AnimatePresence>
               {filteredDoctors.map((doc, index) => (
                 <motion.div
                   key={doc.id}
                   layout
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  transition={{ delay: index * 0.05 }}
                 >
-                  <Card className="group relative h-full bg-white border-slate-200/60 overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 rounded-[2rem]">
-                    {/* Decorative Background */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-[4rem] group-hover:w-full group-hover:h-32 group-hover:rounded-none transition-all duration-500" />
+                  <Card className="group h-full bg-white border-slate-200 overflow-hidden hover:shadow-2xl transition-all duration-500 rounded-[2rem] flex flex-col">
+                    <div className="h-24 bg-slate-900 relative">
+                       <div className="absolute -bottom-10 left-8">
+                         <Avatar className="h-20 w-20 border-4 border-white shadow-xl">
+                            <AvatarImage src={doc.photo} className="object-cover" />
+                            <AvatarFallback className="bg-slate-100 font-bold">{doc.name.charAt(0)}</AvatarFallback>
+                         </Avatar>
+                       </div>
+                    </div>
                     
-                    <CardHeader className="relative pt-8 px-8 pb-4">
-                      <div className="flex items-start justify-between mb-4">
-                        <Avatar className="h-20 w-20 ring-4 ring-white shadow-xl transition-transform duration-500 group-hover:scale-110">
-                          <AvatarImage src={doc.photo} alt={doc.name} className="object-cover" />
-                          <AvatarFallback className="bg-slate-100 text-slate-400 font-bold">{doc.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col items-end gap-2">
-                          <Badge 
-                            variant="secondary" 
-                            className={`px-3 py-1 rounded-full border shadow-sm ${
-                              doc.availability === "Available" 
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-100" 
-                              : doc.availability === "Busy"
-                              ? "bg-amber-50 text-amber-700 border-amber-100"
-                              : "bg-slate-50 text-slate-500 border-slate-100"
-                            }`}
-                          >
-                            <span className={`w-1.5 h-1.5 rounded-full mr-2 ${
-                              doc.availability === "Available" ? "bg-emerald-500" : doc.availability === "Busy" ? "bg-amber-500" : "bg-slate-400"
-                            } animate-pulse`} />
-                            {doc.availability}
+                    <CardHeader className="pt-14 px-8 pb-4">
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {doc.verified ? (
+                          <Badge className="bg-emerald-100 text-emerald-800 border-none px-2 py-0.5 text-[10px] font-bold">
+                            VERIFIED
                           </Badge>
-                          <div className="flex items-center gap-1 text-amber-500 font-bold text-sm bg-amber-50/50 px-2 py-0.5 rounded-lg border border-amber-100">
-                            <Star className="h-3.5 w-3.5 fill-current" />
-                            {doc.rating}
-                          </div>
-                        </div>
+                        ) : doc.isPlatformSuggested && (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 px-2 py-0.5 text-[10px] font-bold">
+                            RECOMMENDED
+                          </Badge>
+                        )}
                       </div>
-
-                      <div className="space-y-1">
-                        <h3 className="text-2xl font-bold text-slate-900 group-hover:text-primary transition-colors">{doc.name}</h3>
-                        <p className="text-sm font-semibold text-primary/80 uppercase tracking-wide">{doc.qualification}</p>
-                      </div>
+                      <h3 className="text-xl font-bold text-slate-900">{doc.name}</h3>
+                      <p className="text-xs font-black text-primary uppercase tracking-tighter">{doc.qualification}</p>
                     </CardHeader>
 
-                    <CardContent className="px-8 pb-8 space-y-6">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3 text-slate-600">
-                          <div className="bg-slate-100 p-2 rounded-lg"><Briefcase className="h-4 w-4" /></div>
-                          <span className="text-sm"><span className="font-bold text-slate-900">{doc.experience}+ Years</span> Experience</span>
+                    <CardContent className="px-8 pb-8 flex-1 flex flex-col justify-between">
+                      <div className="space-y-4 mb-6">
+                        <div className="grid grid-cols-2 gap-4">
+                           <div className="space-y-1">
+                             <p className="text-[10px] font-bold text-slate-400 uppercase">Exp</p>
+                             <div className="flex items-center gap-1.5 text-slate-700 text-sm font-bold">
+                               <Briefcase className="h-3.5 w-3.5 text-slate-300" /> {doc.experience} Yrs
+                             </div>
+                           </div>
+                           <div className="space-y-1">
+                             <p className="text-[10px] font-bold text-slate-400 uppercase">Rating</p>
+                             <div className="flex items-center gap-1.5 text-slate-700 text-sm font-bold">
+                               <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" /> {doc.rating}
+                             </div>
+                           </div>
                         </div>
-                        <div className="flex items-center gap-3 text-slate-600">
-                          <div className="bg-slate-100 p-2 rounded-lg"><Hospital className="h-4 w-4" /></div>
-                          <span className="text-sm truncate font-medium">{doc.clinic}</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-slate-600">
-                          <div className="bg-slate-100 p-2 rounded-lg"><MapPin className="h-4 w-4" /></div>
-                          <span className="text-sm font-medium">{doc.location}</span>
+                        <div className="space-y-2">
+                           <div className="flex items-center gap-2.5 text-sm font-medium text-slate-500">
+                             <Hospital className="h-4 w-4 text-slate-300" /> {doc.clinic}
+                           </div>
+                           <div className="flex items-center gap-2.5 text-sm font-medium text-slate-500">
+                             <MapPin className="h-4 w-4 text-slate-300" /> {doc.location}
+                           </div>
                         </div>
                       </div>
 
-                      {/* Tags */}
-                      <div className="flex flex-wrap gap-1.5">
-                        {doc.tags.map(tag => (
-                          <span key={tag} className="text-[10px] font-bold text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md uppercase tracking-tight">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="pt-6 border-t border-slate-100 grid grid-cols-2 gap-3">
-                        <Button 
-                          variant="outline" 
-                          className="h-11 rounded-xl border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
-                          onClick={() => window.location.href = `tel:${doc.contact}`}
-                        >
-                          <Phone className="h-4 w-4" />
-                          Contact
-                        </Button>
-                        <Button className="h-11 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold group/btn shadow-lg shadow-slate-200">
-                          View Profile
-                          <ChevronRight className="h-4 w-4 ml-1 transition-transform group-hover/btn:translate-x-1" />
-                        </Button>
+                      <div className="flex gap-2">
+                         <Button
+                            variant="outline"
+                            className="flex-1 rounded-xl h-11 font-bold border-slate-200 hover:bg-slate-50"
+                            onClick={() => window.location.href = `tel:${doc.contact}`}
+                          >
+                           <Phone className="h-4 w-4 mr-2" /> Call
+                         </Button>
+                         <Button
+                           className="flex-1 rounded-xl h-11 font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 transition-all"
+                           onClick={() => setBookingDoctor(doc)}
+                         >
+                           <CalendarDays className="h-4 w-4 mr-1.5" /> Book
+                         </Button>
                       </div>
                     </CardContent>
                   </Card>
                 </motion.div>
               ))}
             </AnimatePresence>
-          </motion.div>
-
-          {filteredDoctors.length === 0 && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-32 space-y-4"
-            >
-              <div className="bg-slate-100 h-20 w-20 rounded-full flex items-center justify-center mx-auto text-slate-300">
-                <Search className="h-10 w-10" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900">No doctors found</h3>
-              <p className="text-slate-500">Try adjusting your filters or search terms.</p>
-              <Button onClick={() => {setSearchTerm(""); setSelectedTag("All"); setSelectedLocation("All"); setSelectedAvailability("All");}} variant="link" className="text-primary font-bold">
-                Clear all filters
-              </Button>
-            </motion.div>
-          )}
+          </div>
         </div>
       </main>
 
       <Footer />
+
+      {/* Booking Modal */}
+      {bookingDoctor && (
+        <BookingModal doctor={bookingDoctor} onClose={() => setBookingDoctor(null)} />
+      )}
     </div>
   );
 };
 
 export default DoctorProfiles;
-

@@ -20,6 +20,7 @@ import DoctorProfiles from "./pages/DoctorProfiles.jsx";
 import UserProfile from "./pages/UserProfile.jsx";
 import DoctorDashboard from "./pages/DoctorDashboard.jsx";
 import UserDashboard from "./pages/UserDashboard.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import FloatingEmergency from "./components/FloatingEmergency.jsx";
 
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/login-user" element={<Auth />} />
               <Route path="/login-doctor" element={<Auth />} />
               <Route path="/admin-login" element={<Auth />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               
               <Route
                 path="/dashboard"

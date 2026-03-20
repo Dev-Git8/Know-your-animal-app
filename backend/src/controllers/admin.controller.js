@@ -63,9 +63,8 @@ const adminLogin = async (req, res) => {
 // ── Admin Logout ─────────────────────────────────────────────────────
 const adminLogout = async (_req, res) => {
     try {
-        res.cookie("adminToken", "", {
+        res.clearCookie("adminToken", {
             httpOnly: true,
-            expires: new Date(0),
             path: "/",
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
