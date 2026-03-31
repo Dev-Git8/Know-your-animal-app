@@ -18,7 +18,7 @@ load_dotenv()
 app = Flask(__name__, static_folder='frontend/dist', static_url_path='/')
 
 # Use NeonDB PostgreSQL string as requested
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "postgresql://neondb_owner:npg_wkAzVyG0qZs9@ep-rapid-art-adqrcflx-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "sqlite:///app.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", 'know-your-animal-super-secret')
 
@@ -281,6 +281,16 @@ def login_user():
     resp.set_cookie('token', token, httponly=True, samesite='Lax', max_age=7*24*60*60)
     return resp
 
+@app.route('/api/auth/login-doctor', methods=['POST'])
+def login_doctor():
+    data = request.json or {}
+    email = data.get('email')
+    password = data.get('password')
+
+    user = User.query.filter_by(email=email, role='doctor').first()
+    if not user or not check_password_hash(user.password, password):
+        return jsonify({'message': 'Invalid doctor credentials'}), 401
+
     token = generate_token(user.id, user.role)
     resp = make_response(jsonify({'message': 'Doctor logged in successfully', 'user': user.to_dict()}), 200)
     resp.set_cookie('token', token, httponly=True, samesite='Lax', max_age=7*24*60*60)
@@ -300,6 +310,9 @@ def forgot_password():
     user.reset_token = token
     user.reset_token_expiry = datetime.utcnow() + timedelta(minutes=15)
     db.session.commit()
+    
+    # SECURITY: In production, send this via a real email service (SendGrid/Nodemailer)
+    print(f"DEBUG: Password reset link for {email}: http://localhost:8081/reset-password?token={token}")
     
     # In a real app, send email here. For now, return token in response (demo mode)
     return jsonify({
@@ -335,12 +348,13 @@ def send_otp():
     user = User.query.filter_by(phone_number=phone).first()
     
     if not user:
-        # Optional: Auto-create user for first time Otp login? No, let's keep it separate or handled by frontend
-        pass
-    else:
-        user.otp = otp
-        user.otp_expiry = datetime.utcnow() + timedelta(minutes=5)
-        db.session.commit()
+        # OPTIONAL SECURITY: Don't reveal if user exists. 
+        # For this specific app (Emergency), we can just return success to avoid enumeration.
+        return jsonify({'message': f'If the number is registered, an OTP has been sent.'}), 200
+    
+    user.otp = otp
+    user.otp_expiry = datetime.utcnow() + timedelta(minutes=5)
+    db.session.commit()
         
     # Real app would send SMS. Mocking here.
     print(f"DEBUG: SMS OTP for {phone} is {otp}")
@@ -352,9 +366,13 @@ def login_mobile():
     phone = data.get('phoneNumber')
     otp = data.get('otp')
     
-    user = User.query.filter(User.phone_number == phone, User.otp == otp, User.otp_expiry > datetime.utcnow()).first()
-    if not user:
-        return jsonify({'message': 'Invalid or expired OTP'}), 401
+    user = User.query.filter_by(phone_number=phone).first()
+    
+    if not user or not user.otp or user.otp != otp:
+        return jsonify({'message': 'Invalid OTP'}), 401
+    
+    if user.otp_expiry < datetime.utcnow():
+        return jsonify({'message': 'OTP has expired'}), 401
         
     user.otp = None
     user.otp_expiry = None
