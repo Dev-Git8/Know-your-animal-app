@@ -1,4 +1,4 @@
-# Know Your Animal
+# Know Your Animal App
 
 Know Your Animal is a full-stack web application developed as a team project to provide accessible animal health information and basic veterinary support features.
 
