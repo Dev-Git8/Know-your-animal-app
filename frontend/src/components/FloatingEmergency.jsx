@@ -73,18 +73,19 @@ const FloatingEmergency = () => {
                                     {/* Action Buttons */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <Button 
-                                            onClick={() => navigate("/chat")}
+                                            onClick={() => { setIsOpen(false); navigate("/chat"); }}
                                             className="h-24 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 flex flex-col gap-2 shadow-lg shadow-indigo-100"
                                         >
                                             <MessageSquare className="h-6 w-6" />
                                             <span className="font-bold">Chat with AI</span>
                                         </Button>
                                         <Button 
-                                            className="h-24 rounded-[2rem] bg-red-600 hover:bg-red-700 flex flex-col gap-2 shadow-lg shadow-red-100"
-                                            onClick={() => window.location.href = "tel:108"}
+                                            className="h-24 rounded-[2rem] bg-red-600 hover:bg-red-700 flex flex-col gap-1.5 shadow-lg shadow-red-100 text-white"
+                                            onClick={() => window.location.href = "tel:1962"}
                                         >
                                             <Phone className="h-6 w-6" />
-                                            <span className="font-bold">Emergency Call</span>
+                                            <span className="font-black text-sm">Call 1962</span>
+                                            <span className="text-[10px] opacity-80 font-bold uppercase tracking-wider">Govt Animal SOS</span>
                                         </Button>
                                     </div>
 

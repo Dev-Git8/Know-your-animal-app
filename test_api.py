@@ -1,5 +1,9 @@
 import requests
 import json
+import sys
+
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 
 base_url = "http://localhost:3000/api"
 
@@ -57,7 +61,7 @@ print("Create Animal:", res.status_code, res.json())
 
 print("\n9. Testing Get Animals")
 res = requests.get(f"{base_url}/animals")
-print("Get Animals:", res.status_code, res.json())
+print("Get Animals:", res.status_code, json.dumps(res.json(), ensure_ascii=True))
 
 print("\n10. Testing Admin Get Doctors")
 res = admin_session.get(f"{base_url}/admin/doctors")

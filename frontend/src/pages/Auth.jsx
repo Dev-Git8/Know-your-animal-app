@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Mail, Lock, User as UserIcon, Eye, EyeOff, ArrowLeft, Phone, KeyRound, ShieldCheck, UserCheck, Stethoscope } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { forgotPassword } from "@/integrations/authApi";
@@ -16,7 +16,17 @@ const Auth = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { user, login, adminLogin, doctorLogin, register, loginMobile, sendOtp } = useAuth();
+
+  useEffect(() => {
+    if (location.pathname.includes("doctor") || searchParams.get("role") === "doctor") {
+      setRole("doctor");
+    } else if (location.pathname.includes("admin") || searchParams.get("role") === "admin") {
+      setRole("admin");
+    }
+  }, [location, searchParams]);
 
   useEffect(() => {
     if (user) {
@@ -71,12 +81,28 @@ const Auth = () => {
         if (loginMethod === "phone" && role !== "admin") {
           await loginMobile({ phoneNumber: formData.phone, otp: formData.otp });
         } else {
+          let loggedInUser = null;
           if (role === "admin") {
-            await adminLogin({ email: formData.email, password: formData.password });
+            loggedInUser = await adminLogin({ email: formData.email, password: formData.password });
           } else if (role === "doctor") {
-            await doctorLogin({ email: formData.email, password: formData.password });
+            loggedInUser = await doctorLogin({ email: formData.email, password: formData.password });
           } else {
-            await login({ email: formData.email, password: formData.password });
+            loggedInUser = await login({ email: formData.email, password: formData.password });
+          }
+
+          // If the logged in user is a doctor, direct them straight to doctor dashboard
+          if (loggedInUser?.user?.role === "doctor") {
+            toast.success(`Welcome Dr. ${loggedInUser.user.username || "Doctor"}!`);
+            navigate("/doctor/dashboard", { replace: true });
+            return;
+          } else if (loggedInUser?.user?.role === "admin") {
+            toast.success("Welcome Administrator!");
+            navigate("/admin/dashboard", { replace: true });
+            return;
+          } else {
+            toast.success("Signed in successfully!");
+            navigate("/dashboard", { replace: true });
+            return;
           }
         }
       } else {
@@ -87,6 +113,7 @@ const Auth = () => {
           password: formData.password,
           role: role,
         });
+        toast.success(`Registered successfully as ${roleConfig[role].title}!`);
       }
     } catch (err) {
       const message = err.response?.data?.message || "Something went wrong. Please try again.";

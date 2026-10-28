@@ -21,6 +21,8 @@ import UserProfile from "./pages/UserProfile.jsx";
 import DoctorDashboard from "./pages/DoctorDashboard.jsx";
 import UserDashboard from "./pages/UserDashboard.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
+import Subscription from "./pages/Subscription.jsx";
+import Checkout from "./pages/Checkout.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import FloatingEmergency from "./components/FloatingEmergency.jsx";
 
@@ -42,6 +44,10 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/vets" element={<Vets />} />
               <Route path="/doctor-profiles" element={<DoctorProfiles />} />
+              <Route path="/pricing" element={<Subscription />} />
+              <Route path="/subscription" element={<Subscription />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/payment" element={<Checkout />} />
               <Route
                 path="/profile"
                 element={

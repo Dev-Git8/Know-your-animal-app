@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Heart, ChevronDown, LogOut, User, LayoutDashboard, Shield } from "lucide-react";
+import { Menu, X, Heart, ChevronDown, LogOut, User, LayoutDashboard, Shield, Sparkles } from "lucide-react";
 import LanguageDropdown from "./LanguageDropdown";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { translations } from "@/data/translations";
@@ -97,8 +97,9 @@ const Navbar = () => {
     { to: "/", label: t.nav.home },
     { to: "/animals", label: t.nav.animals },
     { to: "/vets", label: t.nav.vets || "Vets" },
-    { to: "/about", label: t.nav.about },
     { to: "/doctor-profiles", label: t.nav.doctorProfiles },
+    { to: "/pricing", label: "Plans & Pricing" },
+    { to: "/about", label: t.nav.about },
   ];
 
   return (
@@ -153,9 +154,9 @@ const Navbar = () => {
                   `}
                 >
                   <div className={`flex h-7 w-7 items-center justify-center rounded-full font-bold text-xs ${isDropdownOpen ? "bg-primary text-white" : "bg-slate-100 text-slate-500"}`}>
-                    {user.username.charAt(0).toUpperCase()}
+                    {(user.username || user.email || "U").charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-xs font-bold truncate max-w-[80px]">{user.username}</span>
+                  <span className="text-xs font-bold truncate max-w-[80px]">{user.username || user.email || "User"}</span>
                   <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${isDropdownOpen ? "rotate-180" : ""}`} />
                 </button>
 
@@ -186,6 +187,14 @@ const Navbar = () => {
                       >
                         <User className="h-4 w-4" />
                         {t.nav.profile}
+                      </Link>
+                      <Link
+                        to="/pricing"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-3 px-5 py-3.5 text-sm font-bold text-emerald-600 hover:bg-emerald-50 transition-all"
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        Care Plus Plans
                       </Link>
                       {user.role === "doctor" && (
                         <Link
@@ -267,10 +276,10 @@ const Navbar = () => {
                     <div className="bg-slate-50 p-4 rounded-[1.5rem] space-y-3">
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white font-bold text-slate-900 shadow-sm">
-                          {user.username.charAt(0).toUpperCase()}
+                          {(user.username || user.email || "U").charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-black text-slate-900 truncate leading-none mb-1">{user.username}</p>
+                          <p className="text-sm font-black text-slate-900 truncate leading-none mb-1">{user.username || user.email || "User"}</p>
                           <p className="text-[10px] font-bold text-slate-400 uppercase truncate tracking-tight">{user.email}</p>
                         </div>
                       </div>

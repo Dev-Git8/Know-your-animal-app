@@ -12,6 +12,6 @@ start "Frontend (React)" cmd /k "cd frontend && npm run dev"
 
 echo.
 echo Both servers are starting in separate windows.
-echo Please wait a few seconds, then open http://localhost:8081 in your browser.
+echo Please wait a few seconds, then open http://localhost:8080 in your browser.
 echo You can close this window at any time.
 pause

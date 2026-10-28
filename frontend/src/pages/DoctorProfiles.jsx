@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Phone, MapPin, Hospital, Search, Filter, 
@@ -16,6 +17,7 @@ import { getPublicDoctors, bookAppointment } from "@/integrations/authApi";
 
 // ── Book Appointment Modal ────────────────────────────────────────────────
 const BookingModal = ({ doctor, onClose }) => {
+  const navigate = useNavigate();
   const [form, setForm] = useState({ petName: "", reason: "", preferredDate: "", preferredTime: "" });
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -28,9 +30,11 @@ const BookingModal = ({ doctor, onClose }) => {
       setDone(true);
     } catch (err) {
       if (err.response?.status === 401) {
-        alert("Please log in as a user to book an appointment.");
+        if (window.confirm("You need to be logged in to book an appointment. Would you like to log in now?")) {
+          navigate("/auth");
+        }
       } else {
-        alert("Booking failed. Please try again.");
+        alert(err.response?.data?.message || "Booking failed. Please try again.");
       }
     } finally { setLoading(false); }
   };
@@ -109,9 +113,11 @@ const DoctorProfiles = () => {
   // Approximate coordinates for Indian cities to simulate proximity
   const cityCoords = {
     "Kochi": { lat: 9.9312, lon: 76.2673 },
+    "Cochin": { lat: 9.9312, lon: 76.2673 },
     "Chennai": { lat: 13.0827, lon: 80.2707 },
     "Hyderabad": { lat: 17.3850, lon: 78.4867 },
     "Bangalore": { lat: 12.9716, lon: 77.5946 },
+    "Bengaluru": { lat: 12.9716, lon: 77.5946 },
     "Mysore": { lat: 12.2958, lon: 76.6394 },
     "Pune": { lat: 18.5204, lon: 73.8567 },
   };
@@ -153,7 +159,8 @@ const DoctorProfiles = () => {
       try {
         const { data } = await getPublicDoctors();
         let docs = data.map(d => {
-          const city = Object.keys(cityCoords).find(c => d.location.includes(c));
+          const loc = d.location || "";
+          const city = Object.keys(cityCoords).find(c => loc.toLowerCase().includes(c.toLowerCase()));
           return {
             id: d._id,
             name: d.doctorName,

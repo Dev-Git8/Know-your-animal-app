@@ -18,9 +18,14 @@ const UserDashboard = () => {
             {/* Top Stats/Header */}
             <div className="bg-primary pt-12 pb-24 px-6">
                 <div className="max-w-6xl mx-auto flex items-center justify-between text-primary-foreground">
-                    <div>
-                        <h1 className="text-3xl font-bold mb-2">Hello, {user?.username || "Friend"}!</h1>
-                        <p className="text-primary-foreground/80">Welcome to your dashboard. How can we help your pets today?</p>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full">
+                        <div>
+                            <h1 className="text-3xl font-bold mb-2">Hello, {user?.username || "Friend"}!</h1>
+                            <p className="text-primary-foreground/80">Welcome to your dashboard. How can we help your pets today?</p>
+                        </div>
+                        <Link to="/pricing" className="mt-4 sm:mt-0 inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-bold px-4 py-2.5 rounded-2xl transition-all text-xs uppercase tracking-wider border border-white/20">
+                            ⭐ Plan: {user?.subscriptionPlan === 'care_plus' ? 'Care Plus' : (user?.subscriptionPlan === 'farm_pro' ? 'Farm Pro' : 'Free Starter')}
+                        </Link>
                     </div>
                 </div>
             </div>

@@ -5,7 +5,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import { useChatHistory } from "@/hooks/useChatHistory";
 
-const CHAT_URL = `${import.meta.env.VITE_API_URL}/chat`;
+const getChatUrl = () => {
+  return "/api/chat";
+};
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -100,10 +102,12 @@ const Chat = () => {
     };
 
     try {
-      const resp = await fetch(CHAT_URL, {
+      const token = localStorage.getItem("token") || localStorage.getItem("adminToken") || "";
+      const resp = await fetch(getChatUrl(), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {})
         },
         credentials: "include",
         body: JSON.stringify({ messages: newMessages }),

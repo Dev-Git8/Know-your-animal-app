@@ -4,10 +4,11 @@ import {
     Stethoscope, Users, Calendar, Clipboard, LogOut,
     User as UserIcon, CheckCircle, XCircle, Activity,
     Pencil, Clock, PawPrint, Phone, MapPin, Award,
-    ChevronRight, BadgeCheck, Bell, Save, AlertTriangle
+    ChevronRight, BadgeCheck, Bell, Save, AlertTriangle, Check
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/integrations/authApi";
+import { toast } from "sonner";
 
 // ── Small helpers ──────────────────────────────────────────────────────────
 const Field = ({ label, value, onChange, type = "text", placeholder, readOnly }) => (
@@ -42,8 +43,11 @@ const AppointmentModal = ({ appt, onClose, onSave }) => {
         setSaving(true);
         try {
             await api.put(`/doctor/appointments/${appt._id}`, { status, doctorNotes: notes });
+            toast.success("Appointment & clinical notes updated successfully!");
             onSave();
-        } catch { alert("Failed to update appointment"); }
+        } catch { 
+            toast.error("Failed to update appointment"); 
+        }
         finally { setSaving(false); }
     };
 
@@ -96,7 +100,7 @@ const DoctorDashboard = () => {
     const [appointments, setAppointments] = useState([]);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState("profile");
+    const [activeTab, setActiveTab] = useState("appointments");
     const [editMode, setEditMode] = useState(false);
     const [saveMsg, setSaveMsg] = useState("");
     const [manageAppt, setManageAppt] = useState(null);
@@ -126,8 +130,11 @@ const DoctorDashboard = () => {
             await api.put("/doctor/profile", profile);
             setSaveMsg("Profile saved!");
             setEditMode(false);
+            toast.success("Doctor profile updated successfully!");
             setTimeout(() => setSaveMsg(""), 3000);
-        } catch { alert("Failed to save profile"); }
+        } catch { 
+            toast.error("Failed to save profile"); 
+        }
     };
 
     const setAvailability = async (status) => {
@@ -135,7 +142,20 @@ const DoctorDashboard = () => {
             const updated = { ...profile, availabilityStatus: status };
             setProfile(updated);
             await api.put("/doctor/profile", { availabilityStatus: status });
-        } catch { alert("Failed to update availability"); }
+            toast.success(`Availability status set to ${status}`);
+        } catch { 
+            toast.error("Failed to update availability"); 
+        }
+    };
+
+    const handleQuickStatus = async (apptId, newStatus) => {
+        try {
+            await api.put(`/doctor/appointments/${apptId}`, { status: newStatus });
+            toast.success(`Appointment status updated to ${newStatus}!`);
+            loadData();
+        } catch {
+            toast.error("Failed to update appointment status");
+        }
     };
 
     const filteredAppts = apptFilter === "all" ? appointments : appointments.filter(a => a.status === apptFilter);
@@ -326,14 +346,43 @@ const DoctorDashboard = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <button onClick={() => setManageAppt(appt)}
-                                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-600 text-sm font-black hover:bg-indigo-100 transition-colors shrink-0">
-                                        <Pencil className="h-3.5 w-3.5" /> Manage
-                                    </button>
+                                    <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                                        {appt.status === "pending" && (
+                                            <>
+                                                <button
+                                                    onClick={() => handleQuickStatus(appt._id, "confirmed")}
+                                                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-sm"
+                                                    title="Quick Confirm Appointment"
+                                                >
+                                                    <Check className="h-3.5 w-3.5" /> Accept
+                                                </button>
+                                                <button
+                                                    onClick={() => handleQuickStatus(appt._id, "cancelled")}
+                                                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition-all"
+                                                    title="Decline Appointment"
+                                                >
+                                                    <XCircle className="h-3.5 w-3.5" /> Decline
+                                                </button>
+                                            </>
+                                        )}
+                                        {appt.status === "confirmed" && (
+                                            <button
+                                                onClick={() => handleQuickStatus(appt._id, "completed")}
+                                                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-sm"
+                                                title="Mark as Completed"
+                                            >
+                                                <CheckCircle className="h-3.5 w-3.5" /> Mark Done
+                                            </button>
+                                        )}
+                                        <button onClick={() => setManageAppt(appt)}
+                                            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-black hover:bg-indigo-100 transition-colors shrink-0">
+                                            <Pencil className="h-3.5 w-3.5" /> Clinical Notes
+                                        </button>
+                                    </div>
                                 </div>
                                 {appt.doctorNotes && (
                                     <div className="mt-3 px-4 py-3 bg-slate-50 rounded-xl text-sm text-slate-700 border-l-4 border-indigo-400">
-                                        <span className="font-bold text-slate-500 text-xs uppercase tracking-wide">Notes: </span>{appt.doctorNotes}
+                                        <span className="font-bold text-slate-500 text-xs uppercase tracking-wide">Doctor Prescription / Notes: </span>{appt.doctorNotes}
                                     </div>
                                 )}
                             </div>

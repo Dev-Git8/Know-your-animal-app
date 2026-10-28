@@ -7,6 +7,12 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
 const User = require("../models/user.model");
+const dns = require("dns");
+
+// Force DNS fix globally for Windows 
+try {
+    dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {}
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@animalhealth.com";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Admin@1234";

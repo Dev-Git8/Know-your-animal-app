@@ -1,13 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Heart, Shield, Globe, BookOpen, Users, Stethoscope, MapPin, Phone, Mail, Clock, Send } from "lucide-react";
+import { Heart, Shield, Globe, BookOpen, Users, Stethoscope, MapPin, Phone, Mail, Clock, Send, CheckCircle2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import aboutCow from "@/assets/about-cow.jpg";
 import aboutGroup from "@/assets/about-animals-group.jpg";
 
 const About = () => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name || user.username || "",
+        email: prev.email || user.email || ""
+      }));
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -16,8 +29,9 @@ const About = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setSubmitted(true);
-    setFormData({ name: "", email: "", subject: "", message: "" });
-    setTimeout(() => setSubmitted(false), 4000);
+    toast.success("Thank you! Your message has been sent to our veterinary care team. We will get back to you within 24 hours.");
+    setFormData({ name: user?.username || "", email: user?.email || "", subject: "", message: "" });
+    setTimeout(() => setSubmitted(false), 6000);
   };
 
   return (
@@ -81,12 +95,12 @@ const About = () => {
             </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {[
-                { icon: BookOpen, title: "Disease Database", desc: "Comprehensive information on 100+ diseases across 16 domestic animals — from cattle to poultry." },
-                { icon: Globe, title: "12+ Languages", desc: "Access everything in Hindi, Bengali, Tamil, Telugu, Kannada, and many more Indian languages." },
-                { icon: Stethoscope, title: "AI Chatbot", desc: "Ask our AI veterinary assistant anything about animal health and get instant, reliable answers." },
-                { icon: Shield, title: "Verified Info", desc: "All content is reviewed against established veterinary research and agricultural guidelines." },
-                { icon: Users, title: "For Everyone", desc: "Designed for farmers, students, NGOs, and anyone who cares for animals — no technical knowledge needed." },
-                { icon: Heart, title: "100% Free", desc: "No subscriptions, no hidden costs. Animal healthcare knowledge should be accessible to all." },
+                { icon: BookOpen, title: "Disease & Care Database", desc: "In-depth disease symptoms, causes, clinical treatments, and biosecurity guidelines across domestic, farm, and wild animals." },
+                { icon: Globe, title: "12+ Indian Languages", desc: "Full accessibility in English, Hindi, Bengali, Tamil, Telugu, Kannada, and regional Indian languages." },
+                { icon: Stethoscope, title: "24/7 AI Vet Assistant", desc: "Instant AI veterinary triaging for emergency symptom diagnosis, first-aid measures, and round-the-clock pet wellness care." },
+                { icon: Shield, title: "Verified Doctor Directory", desc: "Connect with verified clinical veterinarians and livestock surgeons across India for appointments and teleconsultations." },
+                { icon: Users, title: "Emergency 1962 SOS", desc: "Government animal ambulance helpline integration providing urgent response coordination for distressed and injured animals." },
+                { icon: Heart, title: "Accessible Care Plans", desc: "Free animal encyclopedia & clinic map forever, with affordable Care Plus memberships for unlimited AI care and priority bookings." },
               ].map((item, i) => (
                 <div key={i} className="card-nature flex flex-col items-start">
                   <div className="feature-icon mb-4">
@@ -118,36 +132,39 @@ const About = () => {
                   Get In Touch
                 </h2>
                 <p className="text-[#a09889] leading-relaxed mb-8 max-w-md">
-                  Have questions about animal healthcare, want to suggest a feature, or just want to say hello? We'd love to hear from you.
+                  Have questions about animal healthcare, want to suggest a feature, or need emergency assistance? Our dedicated veterinary support team is here to help.
                 </p>
 
-                <div className="grid grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
                   <div className="flex items-start gap-3">
                     <MapPin className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#c5975b" }} />
                     <div>
-                      <p className="text-white text-sm font-medium">Location</p>
-                      <p className="text-[#a09889] text-xs mt-0.5">Bengaluru, Karnataka, India</p>
+                      <p className="text-white text-sm font-medium">Headquarters</p>
+                      <p className="text-[#a09889] text-xs mt-0.5">Indiranagar, Bengaluru, Karnataka 560038, India</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Phone className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#c5975b" }} />
                     <div>
-                      <p className="text-white text-sm font-medium">Phone</p>
-                      <p className="text-[#a09889] text-xs mt-0.5">+91 1800 XXX XXXX</p>
+                      <p className="text-white text-sm font-medium">Helpline & Support</p>
+                      <p className="text-emerald-400 font-bold text-xs mt-0.5">1962 (Govt Animal SOS)</p>
+                      <p className="text-[#a09889] text-xs mt-0.5">+91 80 4710 9988</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Mail className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#c5975b" }} />
                     <div>
                       <p className="text-white text-sm font-medium">Email</p>
-                      <p className="text-[#a09889] text-xs mt-0.5">support@knowyouranimal.in</p>
+                      <p className="text-[#a09889] text-xs mt-0.5">support@knowyouranimal.com</p>
+                      <p className="text-[#a09889] text-xs mt-0.5">emergency@knowyouranimal.com</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Clock className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#c5975b" }} />
                     <div>
-                      <p className="text-white text-sm font-medium">Hours</p>
-                      <p className="text-[#a09889] text-xs mt-0.5">Mon – Sat: 9AM – 6PM</p>
+                      <p className="text-white text-sm font-medium">Operating Hours</p>
+                      <p className="text-[#a09889] text-xs mt-0.5">Mon – Sat: 8:00 AM – 8:00 PM</p>
+                      <p className="text-emerald-400 font-semibold text-xs mt-0.5">Emergency SOS: 24/7</p>
                     </div>
                   </div>
                 </div>

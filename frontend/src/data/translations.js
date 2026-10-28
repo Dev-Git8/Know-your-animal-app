@@ -72,6 +72,7 @@ export const translations = {
         elephant: "Elephant",
         parrot: "Parrot",
         pigeon: "Pigeon",
+        "bengal-tiger": "Bengal Tiger",
       },
     },
     // Animal Detail Page
@@ -155,6 +156,7 @@ export const translations = {
         elephant: "हाथी",
         parrot: "तोता",
         pigeon: "कबूतर",
+        "bengal-tiger": "बंगाल टाइगर",
       },
     },
     animalDetail: {
@@ -235,6 +237,7 @@ export const translations = {
         elephant: "হাতি",
         parrot: "তোতা",
         pigeon: "কবুতর",
+        "bengal-tiger": "রয়েল বেঙ্গল টাইগার",
       },
     },
     animalDetail: {
@@ -315,6 +318,7 @@ export const translations = {
         elephant: "হাতী",
         parrot: "ভাটৌ",
         pigeon: "পাৰ",
+        "bengal-tiger": "ঢেকীয়াপতীয়া বাঘ",
       },
     },
     animalDetail: {
@@ -395,6 +399,7 @@ export const translations = {
         elephant: "யானை",
         parrot: "கிளி",
         pigeon: "புறா",
+        "bengal-tiger": "வங்காளப் புலி",
       },
     },
     animalDetail: {
@@ -475,6 +480,7 @@ export const translations = {
         elephant: "ആന",
         parrot: "തത്ത",
         pigeon: "പ്രാവ്",
+        "bengal-tiger": "ബംഗാൾ കടുവ",
       },
     },
     animalDetail: {
@@ -555,6 +561,7 @@ export const translations = {
         elephant: "ఏనుగు",
         parrot: "చిలుక",
         pigeon: "పావురం",
+        "bengal-tiger": "రాయల్ బెంగాల్ టైగర్",
       },
     },
     animalDetail: {
@@ -635,6 +642,7 @@ export const translations = {
         elephant: "ಆನೆ",
         parrot: "ಗಿಳಿ",
         pigeon: "ಪಾರಿವಾಳ",
+        "bengal-tiger": "ಬಂಗಾಳ ಹುಲಿ",
       },
     },
     animalDetail: {
@@ -715,6 +723,7 @@ export const translations = {
         elephant: "हत्ती",
         parrot: "पोपट",
         pigeon: "कबूतर",
+        "bengal-tiger": "रॉयल बंगाल वाघ",
       },
     },
     animalDetail: {
@@ -795,6 +804,7 @@ export const translations = {
         elephant: "હાથી",
         parrot: "પોપટ",
         pigeon: "કબૂતર",
+        "bengal-tiger": "બંગાળ વાઘ",
       },
     },
     animalDetail: {
@@ -875,6 +885,7 @@ export const translations = {
         elephant: "ਹਾਥੀ",
         parrot: "ਤੋਤਾ",
         pigeon: "ਕਬੂਤਰ",
+        "bengal-tiger": "ਬੰਗਾਲ ਟਾਈਗਰ",
       },
     },
     animalDetail: {
@@ -955,6 +966,7 @@ export const translations = {
         elephant: "ହାତୀ",
         parrot: "ଶୁଆ",
         pigeon: "ପାରା",
+        "bengal-tiger": "ବଙ୍ଗଳା ବାଘ",
       },
     },
     animalDetail: {

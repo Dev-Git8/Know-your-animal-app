@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   User, Phone, Mail, MapPin, Camera, Plus, Trash2, 
   Heart, Activity, Info, Save, Edit2, X, Dog, Cat, 
-  Shield, Bell, Settings, ChevronRight, LayoutDashboard
+  Shield, Bell, Settings, ChevronRight, LayoutDashboard, CalendarDays, Printer
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
-import { getProfile, updateUserProfile } from "@/integrations/authApi";
+import { getProfile, updateUserProfile, getMyAppointments } from "@/integrations/authApi";
 import { FileText, Download, Loader2 } from "lucide-react";
 import { useEffect } from "react";
 
@@ -67,6 +67,7 @@ const UserProfile = () => {
     });
 
     const [showAddPet, setShowAddPet] = useState(false);
+    const [appointments, setAppointments] = useState([]);
 
     useEffect(() => {
         const load = async () => {
@@ -91,6 +92,12 @@ const UserProfile = () => {
                 }
             } catch (err) {
                 console.error("Failed to load profile", err);
+            }
+            try {
+                const apptRes = await getMyAppointments();
+                setAppointments(apptRes.data || []);
+            } catch (err) {
+                console.error("Failed to load appointments", err);
             }
         };
         load();
@@ -170,6 +177,88 @@ const UserProfile = () => {
         } catch (err) {
             console.error("Failed to sync pets", err);
         }
+    };
+
+    const printHealthCard = (pet) => {
+        const printWindow = window.open("", "_blank", "width=800,height=900");
+        if (!printWindow) {
+            alert("Please allow popups in your browser to print the health passport.");
+            return;
+        }
+        const html = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Digital Animal Health Passport - ${pet.name}</title>
+                <style>
+                    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 40px; color: #1e293b; background: #fff; }
+                    .card { border: 2px solid #0f172a; border-radius: 20px; padding: 32px; max-width: 650px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+                    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 24px; }
+                    .logo { font-size: 22px; font-weight: 900; color: #0f172a; letter-spacing: -0.5px; }
+                    .logo span { color: #16a34a; }
+                    .badge { display: inline-block; padding: 4px 12px; background: #ecfdf5; color: #065f46; font-size: 11px; font-weight: 800; border-radius: 999px; text-transform: uppercase; border: 1px solid #a7f3d0; }
+                    .title { font-size: 24px; font-weight: 800; margin: 0 0 4px 0; }
+                    .subtitle { font-size: 14px; color: #64748b; margin: 0; }
+                    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+                    .box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; }
+                    .box-label { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+                    .box-value { font-size: 15px; font-weight: 700; color: #0f172a; margin: 0; }
+                    .emergency-box { background: #fff1f2; border: 1px solid #fecdd3; border-radius: 12px; padding: 16px; margin: 20px 0; }
+                    .emergency-label { font-size: 11px; font-weight: 800; color: #be123c; text-transform: uppercase; margin-bottom: 6px; }
+                    .emergency-text { font-size: 13px; color: #881337; margin: 0; }
+                    .footer { text-align: center; border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 30px; font-size: 11px; color: #94a3b8; }
+                    @media print { body { padding: 0; } .no-print { display: none; } }
+                </style>
+            </head>
+            <body>
+                <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+                    <button onclick="window.print()" style="padding: 10px 24px; background: #16a34a; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px;">🖨️ Print / Save as PDF</button>
+                </div>
+                <div class="card">
+                    <div class="header">
+                        <div>
+                            <div class="logo">KnowYour<span>Animal</span></div>
+                            <div class="subtitle">Official Animal Health & Immunization Passport</div>
+                        </div>
+                        <div class="badge">Verified Record</div>
+                    </div>
+                    <div>
+                        <h1 class="title">${pet.name}</h1>
+                        <p class="subtitle">${pet.type} · ${pet.breed || "Standard"} · ${pet.age || "Unknown Age"} · ${pet.gender || "Not specified"}</p>
+                    </div>
+                    <div class="grid">
+                        <div class="box">
+                            <div class="box-label">Vaccination Status</div>
+                            <div class="box-value">${pet.vaccination || "Pending"}</div>
+                        </div>
+                        <div class="box">
+                            <div class="box-label">Assigned Veterinarian</div>
+                            <div class="box-value">${pet.assignedVet || "General Care"}</div>
+                        </div>
+                        <div class="box">
+                            <div class="box-label">Last Checkup</div>
+                            <div class="box-value">${pet.lastCheckup || "Recent"}</div>
+                        </div>
+                        <div class="box">
+                            <div class="box-label">Caretaker / Owner</div>
+                            <div class="box-value">${profile.name || user?.username || "Registered Owner"}</div>
+                        </div>
+                    </div>
+                    ${pet.emergencyNotes ? `
+                    <div class="emergency-box">
+                        <div class="emergency-label">⚠️ Emergency Medical Notes / Allergies</div>
+                        <div class="emergency-text">${pet.emergencyNotes}</div>
+                    </div>` : ''}
+                    <div class="footer">
+                        Issued via Know Your Animal Digital Health Platform · Verified Pet Identification & Wellness Document
+                    </div>
+                </div>
+                <script>setTimeout(() => window.print(), 500);</script>
+            </body>
+            </html>
+        `;
+        printWindow.document.write(html);
+        printWindow.document.close();
     };
 
     return (
@@ -261,10 +350,13 @@ const UserProfile = () => {
                         {/* Main Content */}
                         <div className="flex-1 space-y-8">
                             <Tabs defaultValue="pets" className="w-full">
-                                <TabsList className="bg-white border p-1 rounded-2xl h-14 mb-8 shadow-sm">
-                                    <TabsTrigger value="pets" className="rounded-xl px-8 font-bold data-[state=active]:bg-primary data-[state=active]:text-white transition-all">My Animals</TabsTrigger>
+                                <TabsList className="bg-white border p-1 rounded-2xl h-14 mb-8 shadow-sm flex flex-wrap gap-1">
+                                    <TabsTrigger value="pets" className="rounded-xl px-6 font-bold data-[state=active]:bg-primary data-[state=active]:text-white transition-all">My Animals</TabsTrigger>
+                                    <TabsTrigger value="appointments" className="rounded-xl px-6 font-bold data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
+                                        Appointments ({appointments.length})
+                                    </TabsTrigger>
                                     {user?.role === "doctor" && (
-                                        <TabsTrigger value="professional" className="rounded-xl px-8 font-bold data-[state=active]:bg-primary data-[state=active]:text-white transition-all">Professional</TabsTrigger>
+                                        <TabsTrigger value="professional" className="rounded-xl px-6 font-bold data-[state=active]:bg-primary data-[state=active]:text-white transition-all">Professional</TabsTrigger>
                                     )}
                                 </TabsList>
 
@@ -409,6 +501,15 @@ const UserProfile = () => {
                                                                                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center py-2">No documents</p>
                                                                             )}
                                                                         </div>
+
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => printHealthCard(pet)}
+                                                                            className="w-full mt-4 py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 text-xs font-black text-slate-700 transition-all flex items-center justify-center gap-2 shadow-sm"
+                                                                        >
+                                                                            <Printer className="h-3.5 w-3.5 text-primary" />
+                                                                            Print / Save Health Passport (PDF)
+                                                                        </button>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -441,6 +542,77 @@ const UserProfile = () => {
                                         </Card>
                                     </TabsContent>
                                 )}
+
+                                <TabsContent value="appointments">
+                                    <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem] bg-white overflow-hidden">
+                                        <CardHeader className="px-8 pt-8 pb-4 flex flex-row items-center justify-between">
+                                            <div>
+                                                <CardTitle className="text-2xl font-bold">Veterinary Appointments</CardTitle>
+                                                <CardDescription>Track consultation status and doctor clinical notes.</CardDescription>
+                                            </div>
+                                            <a href="/doctor-profiles" className="inline-flex items-center gap-2 rounded-2xl bg-primary text-white text-sm font-bold px-5 py-2.5 hover:bg-primary/90 transition-all shadow-md shadow-primary/20">
+                                                <Plus className="h-4 w-4" /> Book Appointment
+                                            </a>
+                                        </CardHeader>
+                                        <CardContent className="px-8 pb-8 space-y-4">
+                                            {appointments.length === 0 ? (
+                                                <div className="text-center py-12 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                                                    <CalendarDays className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+                                                    <p className="text-slate-600 font-bold mb-1">No appointments yet</p>
+                                                    <p className="text-slate-400 text-sm mb-4">You have not scheduled any veterinary appointments.</p>
+                                                    <a href="/doctor-profiles" className="inline-flex items-center gap-2 text-primary font-bold hover:underline text-sm">
+                                                        Find a Doctor & Book Now →
+                                                    </a>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    {appointments.map(appt => {
+                                                        const statusColors = {
+                                                            pending: "bg-amber-100 text-amber-800 border-amber-200",
+                                                            confirmed: "bg-blue-100 text-blue-800 border-blue-200",
+                                                            completed: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                                                            cancelled: "bg-rose-100 text-rose-800 border-rose-200"
+                                                        };
+                                                        const badgeStyle = statusColors[appt.status] || statusColors.pending;
+                                                        return (
+                                                            <div key={appt._id} className="p-6 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-md transition-all space-y-3">
+                                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                                                                    <div>
+                                                                        <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                                                                            🩺 {appt.doctorName || "Veterinary Doctor"}
+                                                                        </h3>
+                                                                        <p className="text-xs text-slate-500 font-medium mt-0.5">
+                                                                            🐾 Pet: <span className="font-bold text-slate-700">{appt.petName || "General Consultation"}</span>
+                                                                        </p>
+                                                                    </div>
+                                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border ${badgeStyle} self-start sm:self-auto`}>
+                                                                        {appt.status}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600">
+                                                                    <div>
+                                                                        <span className="font-bold text-slate-400 uppercase tracking-wider">Date & Time:</span>{" "}
+                                                                        <span className="font-semibold text-slate-800">{appt.preferredDate || "Scheduled"} at {appt.preferredTime || "TBD"}</span>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="font-bold text-slate-400 uppercase tracking-wider">Reason:</span>{" "}
+                                                                        <span className="font-semibold text-slate-800">{appt.reason || "General Consultation"}</span>
+                                                                    </div>
+                                                                </div>
+                                                                {appt.doctorNotes && (
+                                                                    <div className="p-3 bg-white rounded-xl border border-indigo-100 text-xs text-indigo-900">
+                                                                        <span className="font-bold text-indigo-600 uppercase tracking-wider block mb-1">Doctor's Clinical Notes:</span>
+                                                                        <p className="text-slate-700">{appt.doctorNotes}</p>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                </TabsContent>
                             </Tabs>
                         </div>
                     </div>
