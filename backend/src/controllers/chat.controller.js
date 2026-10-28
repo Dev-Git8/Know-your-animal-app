@@ -35,7 +35,7 @@ exports.chat = async (req, res) => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    model: "gemini-1.5-flash",
+                    model: "gemini-2.5-flash",
                     messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
                     stream: true,
                 }),
@@ -46,7 +46,7 @@ exports.chat = async (req, res) => {
             const errorData = await response.json().catch(() => ({}));
             const errorMessage = errorData.error?.message || "AI service error";
             console.error(`[Gemini Error] Status: ${response.status}, Message: ${errorMessage}`);
-            
+
             if (response.status === 429) {
                 return res.status(429).json({ error: "Too many requests. Please try again later." });
             }
