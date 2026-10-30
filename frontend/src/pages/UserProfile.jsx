@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   User, Phone, Mail, MapPin, Camera, Plus, Trash2, 
   Heart, Activity, Info, Save, Edit2, X, Dog, Cat, 
-  Shield, Bell, Settings, ChevronRight, LayoutDashboard, CalendarDays, Printer
+  Shield, Bell, Settings, ChevronRight, LayoutDashboard, CalendarDays, Printer,
+  Award, CreditCard, Sparkles
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -291,8 +292,19 @@ const UserProfile = () => {
                                         </div>
                                         <div className="mt-4 text-center">
                                             <h2 className="text-2xl font-bold text-slate-900 leading-tight">{profile.name}</h2>
-                                            <p className="text-sm font-semibold text-primary uppercase tracking-wider mt-1">{user?.role}</p>
-                                            <p className="text-sm font-semibold text-slate-400 flex items-center justify-center gap-1 mt-1 uppercase tracking-wider">
+                                            <div className="mt-2 flex items-center justify-center gap-1.5 flex-wrap">
+                                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+                                                    {user?.role || "User"}
+                                                </span>
+                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                                                    user?.subscriptionPlan === 'farm_pro' 
+                                                        ? 'bg-purple-100 text-purple-800 border-purple-200' 
+                                                        : (user?.subscriptionPlan === 'care_plus' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200')
+                                                }`}>
+                                                    ⭐ {user?.subscriptionPlan === 'farm_pro' ? 'Farm Pro' : (user?.subscriptionPlan === 'care_plus' ? 'Care Plus' : 'Free Starter')}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs font-semibold text-slate-400 flex items-center justify-center gap-1 mt-1.5">
                                                 <MapPin className="h-3 w-3" /> {profile.location || "Add Location"}
                                             </p>
                                         </div>
@@ -324,14 +336,32 @@ const UserProfile = () => {
                                             </div>
                                         ) : (
                                             <>
-                                                <div className="space-y-3">
-                                                    <div className="flex items-center gap-4 text-sm bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
-                                                        <Mail className="h-4 w-4 text-primary" />
-                                                        <div className="flex flex-col">
+                                                <div className="space-y-2.5">
+                                                    <div className="flex items-center gap-3.5 text-sm bg-slate-50 p-3.5 rounded-2xl border border-slate-100/60">
+                                                        <Mail className="h-4 w-4 text-primary shrink-0" />
+                                                        <div className="flex flex-col min-w-0">
                                                             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Email</span>
-                                                            <span className="font-semibold text-slate-700 truncate max-w-[160px]">{profile.email}</span>
+                                                            <span className="font-semibold text-slate-700 truncate text-xs">{profile.email}</span>
                                                         </div>
                                                     </div>
+                                                    {profile.phone && (
+                                                        <div className="flex items-center gap-3.5 text-sm bg-slate-50 p-3.5 rounded-2xl border border-slate-100/60">
+                                                            <Phone className="h-4 w-4 text-emerald-600 shrink-0" />
+                                                            <div className="flex flex-col min-w-0">
+                                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Phone Number</span>
+                                                                <span className="font-semibold text-slate-700 truncate text-xs">{profile.phone}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    {profile.location && (
+                                                        <div className="flex items-center gap-3.5 text-sm bg-slate-50 p-3.5 rounded-2xl border border-slate-100/60">
+                                                            <MapPin className="h-4 w-4 text-rose-500 shrink-0" />
+                                                            <div className="flex flex-col min-w-0">
+                                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Location</span>
+                                                                <span className="font-semibold text-slate-700 truncate text-xs">{profile.location}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <Button
                                                     variant="secondary"
@@ -352,8 +382,11 @@ const UserProfile = () => {
                             <Tabs defaultValue="pets" className="w-full">
                                 <TabsList className="bg-white border p-1 rounded-2xl h-14 mb-8 shadow-sm flex flex-wrap gap-1">
                                     <TabsTrigger value="pets" className="rounded-xl px-6 font-bold data-[state=active]:bg-primary data-[state=active]:text-white transition-all">My Animals</TabsTrigger>
-                                    <TabsTrigger value="appointments" className="rounded-xl px-6 font-bold data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
+                                    <TabsTrigger value="appointments" className="rounded-xl px-5 font-bold data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
                                         Appointments ({appointments.length})
+                                    </TabsTrigger>
+                                    <TabsTrigger value="subscription" className="rounded-xl px-5 font-bold data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
+                                        Subscription & Plan
                                     </TabsTrigger>
                                     {user?.role === "doctor" && (
                                         <TabsTrigger value="professional" className="rounded-xl px-6 font-bold data-[state=active]:bg-primary data-[state=active]:text-white transition-all">Professional</TabsTrigger>
@@ -613,6 +646,93 @@ const UserProfile = () => {
                                         </CardContent>
                                     </Card>
                                 </TabsContent>
+
+                                <TabsContent value="subscription">
+                                    <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem] bg-white overflow-hidden">
+                                        <CardHeader className="px-8 pt-8 pb-4">
+                                            <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                                                <Award className="h-6 w-6 text-emerald-600" /> Subscription & Care Membership
+                                            </CardTitle>
+                                            <CardDescription>Review your active care plan, Razorpay payment verification, and veterinary benefits.</CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="px-8 pb-8 space-y-6">
+                                            {/* Current Active Plan Box */}
+                                            <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1.5">
+                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                                                            <Sparkles className="h-3 w-3" /> {user?.subscriptionStatus === 'active' ? 'Active Membership' : 'Standard Tier'}
+                                                        </span>
+                                                    </div>
+                                                    <h3 className="text-2xl font-black text-white">
+                                                        {user?.subscriptionPlan === 'farm_pro' ? 'Farm Pro (Livestock & Dairy)' : (user?.subscriptionPlan === 'care_plus' ? 'Care Plus (Pet Care)' : 'Free Starter Plan')}
+                                                    </h3>
+                                                    <p className="text-slate-300 text-xs mt-1.5 max-w-md leading-relaxed">
+                                                        {user?.subscriptionPlan === 'farm_pro' 
+                                                            ? 'Comprehensive herd & livestock protection for rural cattle, buffaloes, goats, sheep, and poultry.' 
+                                                            : (user?.subscriptionPlan === 'care_plus' 
+                                                                ? 'Complete pet healthcare protection with unlimited 24/7 AI vet consultations and priority clinic visits.' 
+                                                                : 'Basic animal healthcare knowledge with limited online consultations.')}
+                                                    </p>
+                                                </div>
+                                                <div className="text-right flex flex-col items-start md:items-end shrink-0">
+                                                    <div className="text-2xl font-black text-emerald-400">
+                                                        {user?.subscriptionPlan === 'farm_pro' ? '₹499 / mo' : (user?.subscriptionPlan === 'care_plus' ? '₹199 / mo' : '₹0')}
+                                                    </div>
+                                                    <div className="text-[11px] text-slate-400 mt-0.5">
+                                                        {user?.subscriptionStatus === 'active' ? 'Payment Verified via Razorpay' : 'No Active Billing'}
+                                                    </div>
+                                                    <a
+                                                        href="/pricing"
+                                                        className="mt-3 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors shadow-md inline-block text-center"
+                                                    >
+                                                        {user?.subscriptionStatus === 'active' ? 'Manage / Change Plan' : 'Upgrade Membership'}
+                                                    </a>
+                                                </div>
+                                            </div>
+
+                                            {/* Plan Features Checklist */}
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/70">
+                                                    <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center mb-2 font-bold text-sm">
+                                                        🤖
+                                                    </div>
+                                                    <h4 className="font-bold text-slate-900 text-sm">24/7 AI Health Triage</h4>
+                                                    <p className="text-xs text-slate-500 mt-1">Instant medical advice for 17 species including symptoms, dosages, and emergency first aid.</p>
+                                                </div>
+                                                <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/70">
+                                                    <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center mb-2 font-bold text-sm">
+                                                        🩺
+                                                    </div>
+                                                    <h4 className="font-bold text-slate-900 text-sm">Verified Doctors</h4>
+                                                    <p className="text-xs text-slate-500 mt-1">Priority appointment booking with verified clinicians and mobile veterinary clinics.</p>
+                                                </div>
+                                                <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/70">
+                                                    <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center mb-2 font-bold text-sm">
+                                                        📋
+                                                    </div>
+                                                    <h4 className="font-bold text-slate-900 text-sm">Digital Health Passports</h4>
+                                                    <p className="text-xs text-slate-500 mt-1">Printable official animal immunization passports, allergy notes, and emergency records.</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Payment Gateway Trust Notice */}
+                                            <div className="p-4 rounded-xl border border-emerald-100 bg-emerald-50/40 flex items-center justify-between gap-4">
+                                                <div className="flex items-center gap-3">
+                                                    <Shield className="h-5 w-5 text-emerald-600 shrink-0" />
+                                                    <div>
+                                                        <div className="text-xs font-bold text-emerald-900">Razorpay Payment Gateway Integration</div>
+                                                        <div className="text-[11px] text-emerald-700">Protected with 256-bit SSL encryption and RBI-compliant 3D Secure 2.0 verification.</div>
+                                                    </div>
+                                                </div>
+                                                <div className="text-xs font-black text-emerald-800 uppercase tracking-widest shrink-0">
+                                                    100% SECURE
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </TabsContent>
+
                             </Tabs>
                         </div>
                     </div>
