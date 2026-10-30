@@ -24,13 +24,14 @@ const Subscription = () => {
     const fetchData = async () => {
       try {
         const { data: planData } = await getSubscriptionPlans();
-        setPlans(planData.plans || []);
+        const plansList = Array.isArray(planData) ? planData : (planData?.plans || []);
+        setPlans(plansList);
 
         if (user) {
           try {
             const { data: subData } = await getCurrentSubscription();
-            setCurrentPlan(subData.plan || "free");
-            setSubscriptionExpiry(subData.expiry || null);
+            setCurrentPlan(subData?.subscriptionPlan || subData?.plan || "free");
+            setSubscriptionExpiry(subData?.subscriptionExpiry || subData?.expiry || null);
           } catch {
             // Unauthenticated or default
           }

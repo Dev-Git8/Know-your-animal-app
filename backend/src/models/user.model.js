@@ -31,6 +31,15 @@ const userSchema = new mongoose.Schema(
             enum: ["user", "doctor", "admin"],
             default: "user",
         },
+        subscriptionPlan: {
+            type: String,
+            enum: ["free", "care_plus", "farm_pro"],
+            default: "free",
+        },
+        subscriptionExpiry: {
+            type: Date,
+            default: null,
+        },
     },
     { timestamps: true }
 );

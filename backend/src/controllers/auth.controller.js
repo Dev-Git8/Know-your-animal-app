@@ -46,10 +46,11 @@ const registerUser = async (req, res) => {
             await UserProfile.create({ userId: user._id, name: user.username, email: user.email });
         }
 
-        generateTokenAndSetCookie(user, res);
+        const token = generateTokenAndSetCookie(user, res);
 
         res.status(201).json({
             message: "User registered successfully",
+            token,
             user: {
                 _id: user._id,
                 username: user.username,
@@ -90,10 +91,11 @@ const loginUser = async (req, res) => {
             return res.status(401).json({ message: "Invalid email or password" });
         }
 
-        generateTokenAndSetCookie(user, res);
+        const token = generateTokenAndSetCookie(user, res);
 
         res.status(200).json({
             message: "Logged in successfully",
+            token,
             user: {
                 _id: user._id,
                 username: user.username,
@@ -183,7 +185,7 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
     try {
         const user = req.user;
-        const { username, name, phoneNumber, location, pets } = req.body;
+        const { username, name, phoneNumber, location, profilePhoto, bio, clinic, clinicName, specialization, experience, pets } = req.body;
 
         if (username) {
             user.username = username;
@@ -195,10 +197,15 @@ const updateProfile = async (req, res) => {
             profile = new UserProfile({ userId: user._id });
         }
 
-        if (name) profile.name = name;
-        if (phoneNumber) profile.phoneNumber = phoneNumber;
-        if (location) profile.location = location;
-        if (pets) profile.pets = pets;
+        if (name !== undefined) profile.name = name;
+        if (phoneNumber !== undefined) profile.phoneNumber = phoneNumber;
+        if (location !== undefined) profile.location = location;
+        if (profilePhoto !== undefined) profile.profilePhoto = profilePhoto;
+        if (bio !== undefined) profile.bio = bio;
+        if (clinicName !== undefined || clinic !== undefined) profile.clinicName = clinicName || clinic;
+        if (specialization !== undefined) profile.specialization = specialization;
+        if (experience !== undefined) profile.yearsOfExperience = Number(experience) || 0;
+        if (pets !== undefined) profile.pets = pets;
 
         await profile.save();
 

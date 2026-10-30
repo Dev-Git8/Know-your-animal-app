@@ -53,6 +53,9 @@ export const AuthProvider = ({ children }) => {
     // ── Login ──────────────────────────────────────────────────────────
     const login = async (credentials) => {
         const data = await apiLogin(credentials); // let errors propagate to caller
+        if (data?.token) {
+            localStorage.setItem("token", data.token);
+        }
         setUser(data.user);
         return data;
     };
@@ -60,6 +63,9 @@ export const AuthProvider = ({ children }) => {
     // ── Register ───────────────────────────────────────────────────────
     const register = async (credentials) => {
         const data = await apiRegister(credentials);
+        if (data?.token) {
+            localStorage.setItem("token", data.token);
+        }
         setUser(data.user);
         return data;
     };
@@ -107,8 +113,21 @@ export const AuthProvider = ({ children }) => {
         return await apiSendOtp(phoneNumber);
     };
 
+    const refreshProfile = async () => {
+        try {
+            const data = await getProfile();
+            if (data && data.user) {
+                setUser(data.user);
+                return data.user;
+            }
+        } catch (e) {
+            console.error("Failed to refresh user profile:", e);
+        }
+        return null;
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, adminLogin, doctorLogin, loginMobile, sendOtp, register, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, adminLogin, doctorLogin, loginMobile, sendOtp, register, logout, refreshProfile, setUser }}>
             {children}
         </AuthContext.Provider>
     );

@@ -149,6 +149,7 @@ export const getSubscriptionPlans = () => api.get("/subscription/plans");
 export const getCurrentSubscription = () => api.get("/subscription/current");
 export const createSubscriptionOrder = (planId) => api.post("/subscription/create-order", { planId });
 export const verifySubscriptionPayment = (paymentData) => api.post("/subscription/verify-payment", paymentData);
+export const getMyInvoices = () => api.get("/subscription/invoices");
 export const resetSubscription = () => api.post("/subscription/reset");
 
 export default api;

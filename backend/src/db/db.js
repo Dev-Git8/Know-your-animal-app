@@ -2,24 +2,42 @@ const mongoose = require("mongoose");
 const dns = require("dns");
 
 async function connectDB() {
+    // Fix for MongoDB SRV lookup issues on some Windows machines.
     try {
-        // Fix for MongoDB SRV lookup issues on some Windows machines
+        dns.setServers(["8.8.8.8", "1.1.1.1"]);
+    } catch (error) {
+        console.log("Note: Could not set custom DNS servers");
+    }
+
+    console.log("Connecting to Database...");
+    mongoose.set("bufferCommands", false);
+
+    let lastError;
+    for (let attempt = 1; attempt <= 5; attempt += 1) {
         try {
-            dns.setServers(['8.8.8.8', '1.1.1.1']);
-        } catch (e) {
-            console.log("Note: Could not set custom DNS servers");
+            await mongoose.connect(process.env.MONGO_URI, {
+                serverSelectionTimeoutMS: 10000,
+                connectTimeoutMS: 10000,
+                family: 4,
+            });
+            console.log("✅ Database is connected!!");
+            lastError = null;
+            break;
+        } catch (error) {
+            lastError = error;
+            console.error(`Database connection attempt ${attempt}/5 failed:`, error.message);
+            await mongoose.disconnect();
+            if (attempt < 5) {
+                await new Promise((resolve) => setTimeout(resolve, 3000));
+            }
         }
+    }
 
-        console.log("Connecting to Database...");
-        
-        // Disable buffering globally to avoid 10s hangs
-        mongoose.set("bufferCommands", false);
-        
-        await mongoose.connect(process.env.MONGO_URI, {
-            serverSelectionTimeoutMS: 5000,
-        });
-        console.log("✅ Database is connected!!");
+    if (lastError) {
+        throw new Error(`MongoDB unavailable after 5 attempts: ${lastError.message}`);
+    }
 
+    try {
         // Seed admin if not exists
         const User = require("../models/user.model");
         const adminExists = await User.findOne({ role: "admin" });
@@ -57,9 +75,9 @@ async function connectDB() {
             });
             console.log("✅ Default doctor created: doctor@example.com / doctorpassword123");
         }
-    } catch (err) {
-        console.error("❌ Database connection error:", err);
-        // Don't exit immediately, let the app try to handle it or show errors
+    } catch (error) {
+        console.error("❌ Database seeding error:", error);
+        throw error;
     }
 }
 

@@ -6,6 +6,7 @@ const adminRoutes = require("./routes/admin.routes");
 const animalRoutes = require("./routes/animal.routes");
 const chatRoutes = require("./routes/chat.routes");
 const doctorRoutes = require("./routes/doctor.routes");
+const subscriptionRoutes = require("./routes/subscription.routes");
 
 const app = express();
 
@@ -38,5 +39,6 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/animals", animalRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/subscription", subscriptionRoutes);
 
 module.exports = app;

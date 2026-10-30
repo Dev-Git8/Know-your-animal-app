@@ -62,6 +62,22 @@ const userProfileSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        bio: {
+            type: String,
+            trim: true,
+        },
+        specialization: {
+            type: String,
+            trim: true,
+        },
+        clinicName: {
+            type: String,
+            trim: true,
+        },
+        yearsOfExperience: {
+            type: Number,
+            default: 0,
+        },
         pets: [petSchema],
         createdAt: {
             type: Date,
