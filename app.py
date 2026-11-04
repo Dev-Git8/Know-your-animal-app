@@ -42,13 +42,22 @@ else:
     }
 
 # Setup CORS to allow any localhost or 127.0.0.1 port (for Vite or standard setups)
-CORS(app, supports_credentials=True, origins=[
+# Setup CORS to allow local development, Vercel deployments, and Render origins
+client_url = os.environ.get("CLIENT_URL", "").strip()
+allowed_origins = [
     re.compile(r"http://localhost:\d+"),
     re.compile(r"http://127\.0\.0\.1:\d+"),
+    re.compile(r"https://.*\.vercel\.app"),
+    re.compile(r"https://.*\.onrender\.com"),
     "http://localhost:5173",
     "http://localhost:8080",
-    "http://localhost:3000"
-])
+    "http://localhost:3000",
+    "https://know-your-animal-app.vercel.app",
+    "https://know-your-animal-app.onrender.com"
+]
+if client_url and client_url not in allowed_origins:
+    allowed_origins.append(client_url)
+CORS(app, supports_credentials=True, origins=allowed_origins)
 
 db = SQLAlchemy(app)
 
@@ -1498,7 +1507,7 @@ def sync_postgres_sequences():
             except Exception:
                 db.session.rollback()
 
-if __name__ == '__main__':
+def init_app_database():
     with app.app_context():
         # Mask credentials in logs for security
         uri_display = app.config['SQLALCHEMY_DATABASE_URI']
@@ -1506,128 +1515,146 @@ if __name__ == '__main__':
             prefix = uri_display.split('://')[0]
             host_part = uri_display.split('@')[-1]
             uri_display = f"{prefix}://*****@{host_part}"
-        print(f"📦 Connecting to Database: {uri_display}")
+        print(f"?? Connecting to Database: {uri_display}")
         
         try:
             # Create all tables (if they don't exist)
             db.create_all()
-            print("✅ Database tables verified / created successfully.")
+            print("? Database tables verified / created successfully.")
         except Exception as e:
-            print(f"❌ Database connection error: {e}")
-            print("💡 Please verify your DATABASE_URL in .env is correct and reachable.")
+            print(f"? Database connection error: {e}")
+            print("?? Please verify your DATABASE_URL in .env is correct and reachable.")
         
-        # Create default admin if missing
-        if not User.query.filter_by(role='admin').first():
-            pwd = generate_password_hash('admin123')
-            admin = User(username='admin', email='admin@admin.com', password=pwd, role='admin')
-            db.session.add(admin)
-            db.session.commit()
-            print("Default admin created: admin@admin.com / admin123")
+        try:
+            # Create default admin if missing
+            if not User.query.filter_by(role='admin').first():
+                pwd = generate_password_hash('admin123')
+                admin = User(username='admin', email='admin@admin.com', password=pwd, role='admin')
+                db.session.add(admin)
+                db.session.commit()
+                print("Default admin created: admin@admin.com / admin123")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Notice during admin check: {e}")
 
-        # Seed realistic doctors if none exist
-        if DoctorProfile.query.count() < 2:
-            seed_doctors = [
-                {
-                    "name": "Dr. Anjali Menon",
-                    "email": "anjali@example.com",
-                    "qual": "BVSc & AH, MVSc (Surgery)",
-                    "spec": "Pet Surgery Specialist",
-                    "exp": 15,
-                    "loc": "Kadavanthra, Cochin, Kerala",
-                    "clinic": "Cochin Pet Hospital",
-                    "rating": 4.9,
-                    "verified": True
-                },
-                {
-                    "name": "Dr. Karthik Swaminathan",
-                    "email": "karthik@example.com",
-                    "qual": "MVSc Medicine",
-                    "spec": "Avian & Small Animal Expert",
-                    "exp": 10,
-                    "loc": "Adyar, Chennai, Tamil Nadu",
-                    "clinic": "Chennai Vet Care",
-                    "rating": 4.7,
-                    "verified": True
-                },
-                {
-                    "name": "Dr. Bhargavi Reddy",
-                    "email": "bhargavi@example.com",
-                    "qual": "BVSc",
-                    "spec": "Livestock Health Consultant",
-                    "exp": 7,
-                    "loc": "Banjara Hills, Hyderabad, Telangana",
-                    "clinic": "Telangana Animal Wellness",
-                    "rating": 4.5,
-                    "verified": True
-                },
-                {
-                    "name": "Dr. Ramesh Kumar",
-                    "email": "ramesh@example.com",
-                    "qual": "BVSc & AH",
-                    "spec": "Large Animal Specialist",
-                    "exp": 12,
-                    "loc": "Mysore, Karnataka",
-                    "clinic": "Happy Pets Clinic",
-                    "rating": 4.5,
-                    "verified": True
-                },
-                {
-                    "name": "Dr. Rahul Deshmukh",
-                    "email": "rahul@example.com",
-                    "qual": "MVSc Radiology",
-                    "spec": "Diagnostic Imaging Specialist",
-                    "exp": 9,
-                    "loc": "Pune, Maharashtra",
-                    "clinic": "Pune Veterinary Imaging Center",
-                    "rating": 4.3,
-                    "verified": True
-                },
-                {
-                    "name": "Dr. Amit Sharma",
-                    "email": "amit@example.com",
-                    "qual": "BVSc",
-                    "spec": "General Practitioner",
-                    "exp": 5,
-                    "loc": "Jayanagar, Bangalore, Karnataka",
-                    "clinic": "Pet Care Plus",
-                    "rating": 3.8,
-                    "verified": False,
-                    "suggested": True
-                }
-            ]
-            for d in seed_doctors:
-                if not User.query.filter_by(email=d['email']).first():
-                    pw = generate_password_hash('doctor123')
-                    u = User(username=d['name'], email=d['email'], password=pw, role='doctor')
-                    db.session.add(u)
-                    db.session.flush()
-                    prof = DoctorProfile(
-                        user_id=u.id, 
-                        doctor_name=d['name'], 
-                        email=d['email'], 
-                        qualification=d['qual'],
-                        specialization=d['spec'],
-                        years_of_experience=d['exp'],
-                        location=d['loc'],
-                        clinic_name=d['clinic'],
-                        rating=d['rating'],
-                        verified=d.get('verified', False),
-                        is_platform_suggested=d.get('suggested', False)
-                    )
-                    db.session.add(prof)
-            db.session.commit()
-            print("Realistic doctors seeded.")
+        try:
+            # Seed realistic doctors if none exist
+            if DoctorProfile.query.count() < 2:
+                seed_doctors = [
+                    {
+                        "name": "Dr. Anjali Menon",
+                        "email": "anjali@example.com",
+                        "qual": "BVSc & AH, MVSc (Surgery)",
+                        "spec": "Pet Surgery Specialist",
+                        "exp": 15,
+                        "loc": "Kadavanthra, Cochin, Kerala",
+                        "clinic": "Cochin Pet Hospital",
+                        "rating": 4.9,
+                        "verified": True
+                    },
+                    {
+                        "name": "Dr. Karthik Swaminathan",
+                        "email": "karthik@example.com",
+                        "qual": "MVSc Medicine",
+                        "spec": "Avian & Small Animal Expert",
+                        "exp": 10,
+                        "loc": "Adyar, Chennai, Tamil Nadu",
+                        "clinic": "Chennai Vet Care",
+                        "rating": 4.7,
+                        "verified": True
+                    },
+                    {
+                        "name": "Dr. Bhargavi Reddy",
+                        "email": "bhargavi@example.com",
+                        "qual": "BVSc",
+                        "spec": "Livestock Health Consultant",
+                        "exp": 7,
+                        "loc": "Banjara Hills, Hyderabad, Telangana",
+                        "clinic": "Telangana Animal Wellness",
+                        "rating": 4.5,
+                        "verified": True
+                    },
+                    {
+                        "name": "Dr. Ramesh Kumar",
+                        "email": "ramesh@example.com",
+                        "qual": "BVSc & AH",
+                        "spec": "Large Animal Specialist",
+                        "exp": 12,
+                        "loc": "Mysore, Karnataka",
+                        "clinic": "Happy Pets Clinic",
+                        "rating": 4.5,
+                        "verified": True
+                    },
+                    {
+                        "name": "Dr. Rahul Deshmukh",
+                        "email": "rahul@example.com",
+                        "qual": "MVSc Radiology",
+                        "spec": "Diagnostic Imaging Specialist",
+                        "exp": 9,
+                        "loc": "Pune, Maharashtra",
+                        "clinic": "Pune Veterinary Imaging Center",
+                        "rating": 4.3,
+                        "verified": True
+                    },
+                    {
+                        "name": "Dr. Amit Sharma",
+                        "email": "amit@example.com",
+                        "qual": "BVSc",
+                        "spec": "General Practitioner",
+                        "exp": 5,
+                        "loc": "Jayanagar, Bangalore, Karnataka",
+                        "clinic": "Pet Care Plus",
+                        "rating": 3.8,
+                        "verified": False,
+                        "suggested": True
+                    }
+                ]
+                for d in seed_doctors:
+                    if not User.query.filter_by(email=d['email']).first():
+                        pw = generate_password_hash('doctor123')
+                        u = User(username=d['name'], email=d['email'], password=pw, role='doctor')
+                        db.session.add(u)
+                        db.session.flush()
+                        prof = DoctorProfile(
+                            user_id=u.id, 
+                            doctor_name=d['name'], 
+                            email=d['email'], 
+                            qualification=d['qual'],
+                            specialization=d['spec'],
+                            years_of_experience=d['exp'],
+                            location=d['loc'],
+                            clinic_name=d['clinic'],
+                            rating=d['rating'],
+                            verified=d.get('verified', False),
+                            is_platform_suggested=d.get('suggested', False)
+                        )
+                        db.session.add(prof)
+                db.session.commit()
+                print("Realistic doctors seeded.")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Notice during doctor check: {e}")
 
-        # Seed animals and realistic diseases if not fully populated
-        if Animal.query.count() < 17 or Disease.query.count() < 50:
-            try:
-                from seed_comprehensive_animals import seed_database
-                seed_database()
-            except Exception as e:
-                print(f"Error seeding comprehensive animals: {e}")
+        try:
+            # Seed animals and realistic diseases if not fully populated
+            if Animal.query.count() < 17 or Disease.query.count() < 50:
+                try:
+                    from seed_comprehensive_animals import seed_database
+                    seed_database()
+                except Exception as e:
+                    print(f"Error seeding comprehensive animals: {e}")
+        except Exception as e:
+            print(f"Notice during animal check: {e}")
         
-        # Synchronize PostgreSQL auto-increment sequences
-        sync_postgres_sequences()
+        try:
+            # Synchronize PostgreSQL auto-increment sequences
+            sync_postgres_sequences()
+        except Exception as e:
+            print(f"Notice during sequence sync: {e}")
 
+# Run startup initialization for both WSGI/Gunicorn and direct execution
+init_app_database()
+
+if __name__ == '__main__':
     port = int(os.environ.get("PORT", 3000))
     app.run(host="0.0.0.0", port=port, debug=False)
