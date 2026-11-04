@@ -277,6 +277,20 @@ def main():
         appt_rows = sqlite_cur.execute("SELECT * FROM appointment").fetchall()
         migrated_appts = 0
         for r in appt_rows:
+            # PostgreSQL requires foreign key user_id to exist in 'user'
+            if not User.query.filter_by(id=r['user_id']).first():
+                from werkzeug.security import generate_password_hash
+                placeholder_u = User(
+                    id=r['user_id'],
+                    username=f"Archived User {r['user_id']}",
+                    email=f"archived_user_{r['user_id']}@placeholder.local",
+                    password=generate_password_hash("archived123"),
+                    role="user"
+                )
+                db.session.add(placeholder_u)
+                db.session.commit()
+                print(f"   Created placeholder user for orphaned appointment user_id {r['user_id']}")
+
             existing = Appointment.query.filter_by(id=r['id']).first()
             if not existing:
                 apt = Appointment(
