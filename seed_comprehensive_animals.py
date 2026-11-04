@@ -1,5 +1,5 @@
 import json
-from app import app, db, Animal, Disease
+from app import app, db, Animal, Disease, sync_postgres_sequences
 
 ANIMAL_DATA = [
     {
@@ -708,6 +708,7 @@ def seed_database():
             print(f"  -> Added {len(a_info['diseases'])} diseases for {animal.name}")
 
         db.session.commit()
+        sync_postgres_sequences()
         
         total_animals = Animal.query.count()
         total_diseases = Disease.query.count()
