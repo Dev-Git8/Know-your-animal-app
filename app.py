@@ -1,6 +1,7 @@
 import os
 import re
 import functools
+import logging
 import requests
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify, make_response, Response, send_from_directory
@@ -16,6 +17,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__, static_folder='frontend/dist', static_url_path='/')
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Database configuration (PostgreSQL & SQLite support)
 raw_db_uri = os.environ.get("DATABASE_URL", "sqlite:///app.db").strip().strip('"').strip("'")
@@ -763,24 +766,40 @@ class Appointment(db.Model):
 @token_required
 def book_appointment(current_user):
     data = request.json or {}
-    raw_doc_id = data.get('doctorId')
+    raw_doc_id = data.get('doctorId') or data.get('doctor_id') or data.get('id')
     if not raw_doc_id:
         return jsonify({'message': 'Doctor ID is required'}), 400
     try:
         doc_id = int(raw_doc_id)
     except (ValueError, TypeError):
         return jsonify({'message': 'Invalid Doctor ID'}), 400
-    appt = Appointment(
-        user_id=current_user.id,
-        doctor_id=doc_id,
-        pet_name=data.get('petName'),
-        reason=data.get('reason'),
-        preferred_date=data.get('preferredDate'),
-        preferred_time=data.get('preferredTime'),
-    )
-    db.session.add(appt)
-    db.session.commit()
-    return jsonify({'message': 'Appointment booked!', 'appointment': appt.to_dict()}), 201
+
+    pet_name = (data.get('petName') or data.get('pet_name') or '').strip()
+    reason = (data.get('reason') or '').strip()
+    preferred_date = (data.get('preferredDate') or data.get('preferred_date') or '').strip()
+    preferred_time = (data.get('preferredTime') or data.get('preferred_time') or '').strip()
+
+    if not pet_name:
+        return jsonify({'message': 'Pet name is required'}), 400
+    if not reason:
+        return jsonify({'message': 'Reason for visit is required'}), 400
+
+    try:
+        appt = Appointment(
+            user_id=current_user.id,
+            doctor_id=doc_id,
+            pet_name=pet_name,
+            reason=reason,
+            preferred_date=preferred_date,
+            preferred_time=preferred_time,
+        )
+        db.session.add(appt)
+        db.session.commit()
+        return jsonify({'message': 'Appointment booked successfully!', 'appointment': appt.to_dict()}), 201
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error booking appointment: {e}")
+        return jsonify({'message': f'Failed to book appointment: {str(e)}'}), 500
 
 # User views their own appointments
 @app.route('/api/appointments/my', methods=['GET'])
@@ -989,8 +1008,13 @@ def update_appointment(current_user, appt_id):
     data = request.json or {}
     if 'status' in data: appt.status = data['status']
     if 'doctorNotes' in data: appt.doctor_notes = data['doctorNotes']
-    db.session.commit()
-    return jsonify({'message': 'Appointment updated', 'appointment': appt.to_dict()}), 200
+    try:
+        db.session.commit()
+        return jsonify({'message': 'Appointment updated', 'appointment': appt.to_dict()}), 200
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error updating appointment: {e}")
+        return jsonify({'message': f'Failed to update appointment: {str(e)}'}), 500
 
 # Doctor gets list of all registered users (to browse/select for appointments)
 @app.route('/api/doctor/users', methods=['GET'])
@@ -1712,6 +1736,12 @@ def not_found(e):
     if app.static_folder and os.path.exists(os.path.join(app.static_folder, 'index.html')):
         return send_from_directory(app.static_folder, 'index.html')
     return jsonify({"error": "Not found"}), 404
+
+@app.errorhandler(500)
+def internal_error(e):
+    db.session.rollback()
+    logger.error(f"Internal server error: {e}")
+    return jsonify({"message": "An internal server error occurred. Please try again later."}), 500
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')

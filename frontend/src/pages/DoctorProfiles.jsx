@@ -15,26 +15,43 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPublicDoctors, bookAppointment } from "@/integrations/authApi";
 
+const formatDocName = (name) => {
+  if (!name) return "Expert Veterinarian";
+  return name.startsWith("Dr.") ? name : `Dr. ${name}`;
+};
+
 // ── Book Appointment Modal ────────────────────────────────────────────────
 const BookingModal = ({ doctor, onClose }) => {
   const navigate = useNavigate();
   const [form, setForm] = useState({ petName: "", reason: "", preferredDate: "", preferredTime: "" });
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const docDisplayName = formatDocName(doctor?.name);
 
   const submit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await bookAppointment({ ...form, doctorId: doctor.id });
+      const docId = doctor.id || doctor._id || doctor.doctorId;
+      if (!docId) {
+        alert("Selected doctor profile is invalid. Please select another expert.");
+        return;
+      }
+      await bookAppointment({ ...form, doctorId: docId });
       setDone(true);
     } catch (err) {
-      if (err.response?.status === 401) {
+      console.error("Booking error:", err);
+      const statusCode = err.response?.status;
+      const resData = err.response?.data;
+      const rawMsg = resData?.message || resData?.error || (typeof resData === 'string' && resData.length < 200 ? resData : null);
+      const isAuthIssue = statusCode === 401 || statusCode === 403 || (rawMsg && (rawMsg.toLowerCase().includes("not authorized") || rawMsg.toLowerCase().includes("token") || rawMsg.toLowerCase().includes("logged in")));
+
+      if (isAuthIssue) {
         if (window.confirm("You need to be logged in to book an appointment. Would you like to log in now?")) {
           navigate("/auth");
         }
       } else {
-        alert(err.response?.data?.message || "Booking failed. Please try again.");
+        alert(rawMsg || err.message || "Booking failed. Please check your connection and try again.");
       }
     } finally { setLoading(false); }
   };
@@ -46,7 +63,7 @@ const BookingModal = ({ doctor, onClose }) => {
           <div className="p-10 text-center">
             <div className="text-5xl mb-4">🎉</div>
             <h3 className="text-xl font-black text-slate-900 mb-2">Appointment Requested!</h3>
-            <p className="text-slate-500 text-sm mb-6">Dr. {doctor.name} will confirm your appointment shortly.</p>
+            <p className="text-slate-500 text-sm mb-6">{docDisplayName} will confirm your appointment shortly.</p>
             <button onClick={onClose} className="px-6 py-3 rounded-2xl bg-primary text-white font-black hover:bg-primary/90 transition-all">Done</button>
           </div>
         ) : (
@@ -54,7 +71,7 @@ const BookingModal = ({ doctor, onClose }) => {
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
               <div>
                 <h2 className="font-black text-slate-900 text-lg">Book Appointment</h2>
-                <p className="text-sm text-slate-400">with Dr. {doctor.name}</p>
+                <p className="text-sm text-slate-400">with {docDisplayName}</p>
               </div>
               <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100"><XCircle className="h-5 w-5 text-slate-400" /></button>
             </div>
