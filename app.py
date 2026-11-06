@@ -1223,43 +1223,25 @@ def generate_fallback_vet_response(messages):
             "- Have your vet run a **routine fecal test** to screen for intestinal worms and rule out Exocrine Pancreatic Insufficiency (EPI) or malabsorption."
         )
 
-    # 3. Ticks, Fleas, Mange, Itching, Scratching, Skin Infections, Hair Loss
-    elif any(k in q for k in ["tick", "flea", "mange", "itch", "scratch", "hair loss", "losing hair", "bald", "skin", "rash", "hot spot", "allergy", "fungal", "scab", "crust", "ringworm", "dermatitis"]):
+    # 3. Toxic Food Ingestion & Poisoning (Emergency)
+    elif any(k in q for k in ["poison", "toxic", "toxicity", "chocolate", "onion", "garlic", "grape", "raisin", "xylitol", "rat poison", "swallowed pill", "paracetamol", "crocin", "ibuprofen"]):
         text = (
-            "**Canine & Pet Skin Care, Ticks & Itch Relief:**\n\n"
-            "Persistent scratching, biting at paws, or hair loss indicates ectoparasites, fungal infections, or allergic dermatitis.\n\n"
-            "**1. Identifying the Root Cause:**\n"
-            "- **Ticks & Fleas:** Look between toes, inside ear flaps, under armpits, and groin. Ticks transmit dangerous blood parasites (Babesiosis / Tick Fever).\n"
-            "- **Mange (Sarcoptic vs Demodectic):** Sarcoptic mange causes intense, relentless itching and crusting; Demodex causes patchy hair loss around the eyes and muzzle.\n"
-            "- **Hot Spots (Moist Dermatitis):** Red, oozing, inflamed patches that develop rapidly from licking/chewing a single area.\n"
-            "- **Fungal / Ringworm:** Circular bald patches with scaly, flaky edges.\n\n"
-            "**2. Immediate Home Care & Safe First Aid:**\n"
-            "- **Neem Water Rinse:** Boil fresh neem leaves in water, cool completely, and use as a soothing final rinse after baths.\n"
-            "- **Medicated Shampoo:** Bathe with a veterinary **Chlorhexidine (2-4%) + Ketoconazole** shampoo. Lather thoroughly and let it sit on the skin for 10 full minutes before rinsing.\n"
-            "- **Hot Spot Care:** Gently clip away hair around the wound. Clean with diluted Povidone-Iodine (Betadine 5%) or chlorhexidine. Keep the area completely dry.\n"
-            "- **Prevent Licking:** Use an Elizabethan collar (cone) to prevent secondary bacterial infection from constant licking.\n\n"
-            "**3. Veterinary Tick & Flea Control:**\n"
-            "- Modern chewable tablets (*Fluralaner / Bravecto* or *Sarolaner / Simparica*) or spot-ons (*Fipronil*) provide 1-3 months of comprehensive protection against ticks, fleas, and mange.\n"
-            "- *Important Warning:* Never use engine oil, diesel, or human antiseptics (Dettol/Savlon) on animal skin — they are toxic if licked!"
+            "**EMERGENCY TRIAGE: Poisoning & Toxic Ingestion:**\n\n"
+            "Animals metabolize chemicals differently than humans. Substances safe for people can be lethal to pets.\n\n"
+            "**1. Highly Toxic Everyday Substances:**\n"
+            "- **Chocolate:** Contains theobromine; causes cardiac arrhythmias, tremors, and seizures (dark chocolate is most dangerous).\n"
+            "- **Grapes & Raisins:** Can cause acute, sudden irreversible kidney failure even in microscopic quantities.\n"
+            "- **Onions, Garlic, & Chives:** Cause oxidative damage to red blood cells, leading to severe hemolytic anemia.\n"
+            "- **Xylitol (Artificial Sweetener in peanut butter/sugar-free gum):** Causes catastrophic hypoglycemia and acute liver necrosis.\n"
+            "- **Human Painkillers (Paracetamol/Crocin, Ibuprofen/Combiflam):** Severely toxic; even a single Paracetamol tablet causes fatal liver and blood destruction in cats and dogs.\n\n"
+            "**2. Urgent Steps to Take Right Now:**\n"
+            "- Identify the exact substance, estimated quantity, and time elapsed.\n"
+            "- **Do NOT induce vomiting** if the substance was acidic, alkaline, petroleum-based, or if the pet is lethargic, seizing, or unconscious.\n"
+            "- If ingestion occurred within the last 60-90 minutes, contact an emergency vet immediately to safely induce vomiting with veterinary apomorphine or administer medical activated charcoal.\n"
+            "- Call the national **1962 animal helpline** or rush to the nearest emergency veterinary facility."
         )
 
-    # 4. Vomiting, Diarrhea, Loose Motions, Parvovirus Triage
-    elif any(k in q for k in ["vomit", "puke", "throw up", "diarrhea", "loose motion", "watery stool", "upset stomach", "gastric", "parvo"]):
-        text = (
-            "**Gastrointestinal Care (Vomiting & Diarrhea Protocol):**\n\n"
-            "Gastrointestinal distress can range from a minor dietary indiscretion to a life-threatening viral infection like Parvovirus.\n\n"
-            "**1. Immediate At-Home Care Steps:**\n"
-            "- **Gut Rest:** For adult dogs, withhold heavy food for 6 to 8 hours to allow the inflamed stomach lining to settle. *(Never fast young puppies under 4 months due to risk of hypoglycemia).*\n"
-            "- **Hydration Therapy:** Offer small, frequent sips (1-2 tablespoons every 20 minutes) of fresh water, oral rehydration salts (ORS/Electral), or boiled rice water. Do not let them gulp huge bowls of water at once.\n"
-            "- **Transition to Bland Diet:** Once vomiting has ceased for 8 hours, offer small portions of boiled white rice mixed with shredded boiled skinless chicken breast or plain fresh curd (dahi).\n\n"
-            "**2. Critical Red Flags (Seek Urgent Vet Care):**\n"
-            "- **Unvaccinated Puppy:** Sudden foul-smelling, bloody diarrhea accompanied by extreme lethargy and fever is the hallmark of **Canine Parvovirus**, requiring emergency IV fluids and antiemetics.\n"
-            "- Blood in vomit (looks like coffee grounds) or bright red blood in stools.\n"
-            "- Continuous retching without bringing anything up (sign of life-threatening Bloat / GDV).\n"
-            "- Inability to keep even water down for more than 12 hours."
-        )
-
-    # 5. Bloat / GDV (Dogs & Cattle)
+    # 4. Bloat / GDV (Dogs & Cattle Emergency)
     elif any(k in q for k in ["bloat", "tympanites", "swollen belly", "distended", "gas in stomach", "twisted stomach", "afra"]):
         if is_cow or is_buffalo or is_goat:
             text = (
@@ -1285,174 +1267,9 @@ def generate_fallback_vet_response(messages):
                 "- Rush your dog to the nearest 24/7 veterinary emergency hospital for surgical decompression immediately."
             )
 
-    # 6. Toxic Food Ingestion & Poisoning
-    elif any(k in q for k in ["poison", "toxic", "toxicity", "chocolate", "onion", "garlic", "grape", "raisin", "xylitol", "rat poison", "swallowed pill", "paracetamol", "crocin", "ibuprofen"]):
-        text = (
-            "**EMERGENCY TRIAGE: Poisoning & Toxic Ingestion:**\n\n"
-            "Animals metabolize chemicals differently than humans. Substances safe for people can be lethal to pets.\n\n"
-            "**1. Highly Toxic Everyday Substances:**\n"
-            "- **Chocolate:** Contains theobromine; causes cardiac arrhythmias, tremors, and seizures (dark chocolate is most dangerous).\n"
-            "- **Grapes & Raisins:** Can cause acute, sudden irreversible kidney failure even in microscopic quantities.\n"
-            "- **Onions, Garlic, & Chives:** Cause oxidative damage to red blood cells, leading to severe hemolytic anemia.\n"
-            "- **Xylitol (Artificial Sweetener in peanut butter/sugar-free gum):** Causes catastrophic hypoglycemia and acute liver necrosis.\n"
-            "- **Human Painkillers (Paracetamol/Crocin, Ibuprofen/Combiflam):** Severely toxic; even a single Paracetamol tablet causes fatal liver and blood destruction in cats and dogs.\n\n"
-            "**2. Urgent Steps to Take Right Now:**\n"
-            "- Identify the exact substance, estimated quantity, and time elapsed.\n"
-            "- **Do NOT induce vomiting** if the substance was acidic, alkaline, petroleum-based, or if the pet is lethargic, seizing, or unconscious.\n"
-            "- If ingestion occurred within the last 60-90 minutes, contact an emergency vet immediately to safely induce vomiting with veterinary apomorphine or administer medical activated charcoal.\n"
-            "- Call the national **1962 animal helpline** or rush to the nearest emergency veterinary facility."
-        )
-
-    # 7. Biting, Chewing, Barking, Training, Potty Training & Anxiety
-    elif any(k in q for k in ["biting", "bite", "chewing", "chew", "barking", "bark", "aggression", "aggressive", "anxiety", "training", "potty training", "pee inside", "toilet training", "chew shoes", "chewing furniture"]):
-        text = (
-            "**Canine Behavior, Training & Habit Correction:**\n\n"
-            "Understanding canine developmental psychology is the secret to resolving unwanted behavioral issues permanently.\n\n"
-            "**1. Puppy Biting & Mouthing (Teething):**\n"
-            "- Puppies explore everything with teeth between 3 to 7 months as adult teeth emerge.\n"
-            "- **The 'Ouch!' Technique:** When teeth touch your skin or clothes, immediately let out a sharp, high-pitched *'Ouch!'*, freeze, and completely withdraw attention for 30 seconds. This teaches bite inhibition.\n"
-            "- **Redirection:** Always have a rubber chew toy, rope, or cold carrot ready. Swap your hand/shoes for the toy and praise enthusiastically when they chew the toy.\n\n"
-            "**2. Successful Potty & House Training:**\n"
-            "- Follow the **2-Hour Rule:** Take puppies outside every 2 hours, plus immediately after waking up, eating, and energetic play.\n"
-            "- Pick a dedicated outdoor spot. Stand quietly until they relieve themselves, then reward immediately with a treat and praise within 3 seconds.\n"
-            "- *Never punish indoor accidents after the fact:* Dogs cannot connect punishment with past events; scolding creates anxiety and leads them to hide accidents or eat feces.\n\n"
-            "**3. Excessive Barking & Separation Anxiety:**\n"
-            "- Ensure at least 30-45 minutes of vigorous exercise and mental games (snuffle mats, fetch) daily.\n"
-            "- Practice calm departures without long emotional goodbyes. Leave an item of clothing with your scent in their resting area."
-        )
-
-    # 8. Vaccines & Deworming
-    elif any(k in q for k in ["vaccin", "vaccine", "vaccination", "shot", "deworm", "deworming", "schedule", "rabies", "dhppi", "dewormer"]):
-        if is_cow or is_buffalo:
-            text = (
-                "**Bovine & Livestock Vaccination / Deworming Protocol:**\n\n"
-                "**1. Cattle & Buffalo Vaccination Schedule:**\n"
-                "- **Foot and Mouth Disease (FMD):** Twice annually (pre-monsoon and post-monsoon).\n"
-                "- **Hemorrhagic Septicemia (HS - गलघोंटू):** Annually in May/June before monsoon rains.\n"
-                "- **Black Quarter (BQ - लंगड़ा बुखार):** Annually in May/June alongside HS.\n"
-                "- **Lumpy Skin Disease (LSD):** Heterologous Goat Pox vaccine (3ml S/C) annually.\n"
-                "- **Brucellosis (Cotton Strain 19):** Single lifetime dose for female calves aged 4-8 months.\n\n"
-                "**2. Deworming Schedule:**\n"
-                "- Deworm adult cattle before monsoon (June) and after monsoon (October).\n"
-                "- Rotate dewormer classes (Albendazole, Fenbendazole, Ivermectin, Oxyclozanide) to prevent parasite resistance."
-            )
-        else:
-            text = (
-                "**Canine Vaccination & Deworming Master Schedule:**\n\n"
-                "**1. Core Puppy Vaccination Timeline:**\n"
-                "- **6 to 8 Weeks:** 1st DHPPi / Puppy DP (Distemper, Hepatitis, Parvovirus, Parainfluenza).\n"
-                "- **10 to 12 Weeks:** 2nd DHPPi Booster + Leptospirosis + Canine Coronavirus.\n"
-                "- **14 to 16 Weeks:** 3rd DHPPi Booster + Anti-Rabies Vaccine (ARV) + Kennel Cough.\n"
-                "- **Adult Boosters:** Annual single booster for DHPPi and Anti-Rabies every year for life.\n\n"
-                "**2. Complete Deworming Protocol:**\n"
-                "- **Puppies:** Every 2 weeks until 3 months of age, then monthly until 6 months of age.\n"
-                "- **Adult Dogs:** Every 3 months (4 times a year) using broad-spectrum veterinary tablets (*Praziquantel + Pyrantel Embonate + Febantel*, 1 tablet per 10 kg body weight).\n"
-                "- Weigh your dog before dosing to ensure accurate therapeutic effectiveness."
-            )
-
-    # 9. Wounds, Cuts, Bleeding, Bites, Maggots
-    elif any(k in q for k in ["wound", "bleed", "bleeding", "cut", "injury", "bitten", "dog bite", "maggot", "pus", "abscess", "sore"]):
-        text = (
-            "**First Aid for Wounds, Cuts, Bites & Maggot Care:**\n\n"
-            "**1. Active Bleeding First Aid:**\n"
-            "- Apply direct, continuous pressure over the bleeding site with a clean, sterile cloth or gauze for 5-10 full minutes without lifting to check.\n"
-            "- Elevate the injured limb if possible.\n\n"
-            "**2. Wound Cleaning & Disinfection:**\n"
-            "- Flush the area gently with sterile normal saline or clean lukewarm water to remove dirt.\n"
-            "- Disinfect with diluted **Povidone-Iodine (Betadine 5%)**. Do not pour neat hydrogen peroxide into deep wounds as it destroys healthy healing tissue.\n\n"
-            "**3. Maggot Infested Wounds:**\n"
-            "- Maggot wounds spread rapidly into deep muscle. Apply turpentine oil soaked gauze plugs or spray veterinary **Topicure / D-Mag spray** to paralyze and extract maggots.\n"
-            "- Requires systemic veterinary antibiotic coverage and subcutaneous Ivermectin.\n\n"
-            "**4. Animal Bites (Rabies Alert):**\n"
-            "- Wash bite punctures thoroughly under high-pressure running tap water with soap for at least 15 minutes.\n"
-            "- Visit a vet immediately for Anti-Rabies booster and broad-spectrum antibiotics to prevent abscess formation."
-        )
-
-    # 10. Limping, Leg Pain, Joint Issues, Arthritis, Fractures
-    elif any(k in q for k in ["limp", "limping", "leg", "paw", "joint", "fracture", "broken bone", "sprain", "arthritis", "hip dysplasia", "can't walk", "unable to stand"]):
-        text = (
-            "**Orthopedic Care & Limping Protocol:**\n\n"
-            "Limping indicates pain or structural compromise in bone, ligament, muscle, or paw pad.\n\n"
-            "**1. Inspection & Triage:**\n"
-            "- **Check Paw Pads First:** Examine between toes for thorn punctures, glass shards, ticks, or torn toenails.\n"
-            "- **Swelling & Heat:** Gently feel the joint and leg bones for warmth, acute tenderness, or abnormal bending.\n\n"
-            "**2. Immediate Care & Immobilization:**\n"
-            "- Enforce **strict cage / room rest**. Restrict stairs, running, and jumping on furniture.\n"
-            "- For acute trauma (within 24 hours), apply a cold ice pack wrapped in a clean towel for 10 minutes to reduce inflammation.\n\n"
-            "**3. Critical Medication Warning:**\n"
-            "- **NEVER give human painkillers** (Paracetamol, Combiflam, Aspirin, or Ibuprofen). They cause severe stomach ulcers, acute renal failure, and death in animals.\n"
-            "- Only use vet-prescribed veterinary NSAIDs (such as *Meloxicam* or *Carprofen*) dosed precisely by weight.\n"
-            "- An X-ray is required if the pet refuses to bear any weight for more than 24 hours."
-        )
-
-    # 11. Coughing, Sneezing, Respiratory Issues, Kennel Cough
-    elif any(k in q for k in ["cough", "coughing", "sneeze", "sneezing", "breathing", "breath", "kennel cough", "wheezing", "gasping", "asthma", "choking"]):
-        text = (
-            "**Respiratory Health & Coughing Protocol:**\n\n"
-            "**1. Common Conditions:**\n"
-            "- **Kennel Cough (Bordetella / Parainfluenza):** Characterized by a harsh, dry, hacking 'goose-honk' cough, often ending in a retching gag as if choking on something.\n"
-            "- **Cardiac Cough:** Soft, moist nocturnal cough in older pets due to heart valve disease or fluid congestion.\n"
-            "- **Allergic Bronchitis / Pneumonia:** Wheezing, nasal discharge, and elevated body temperature.\n\n"
-            "**2. Comfort & Supportive Home Care:**\n"
-            "- **Steam Inhalation:** Bring your pet into the bathroom while running a hot shower for 10-15 minutes; warm steam loosens airway mucus.\n"
-            "- Provide **1 teaspoon of pure natural honey** (for dogs over 1 year old) 2-3 times daily to coat and soothe the irritated trachea.\n"
-            "- Switch from a neck collar to a chest harness to eliminate airway pressure.\n\n"
-            "**3. Emergency Symptoms:**\n"
-            "- Bluish/purple tongue or gums, flared nostrils, gasping with neck extended, or fever above 103.5°F require emergency veterinary oxygen therapy."
-        )
-
-    # 12. Eye & Ear Conditions
-    elif any(k in q for k in ["ear", "ears", "eye", "eyes", "discharge", "conjunctivitis", "ear mite", "head shaking", "cloudy eye", "smelly ear"]):
-        text = (
-            "**Eye & Ear Health Protocols:**\n\n"
-            "**1. Ear Infections & Ear Mites (Otitis Externa):**\n"
-            "- **Symptoms:** Continuous head shaking, scratching ears, foul odor, dark coffee-ground wax.\n"
-            "- **Care:** Clean the outer ear flap with cotton pads soaked in a veterinary ear cleanser. **Never insert cotton ear buds (Q-tips)** deep into the canal as you will pack debris against the eardrum.\n"
-            "- Treat with veterinary antifungal/antibacterial drops (*Otomax / Pomisol*) prescribed by your vet.\n\n"
-            "**2. Eye Irritations & Infections:**\n"
-            "- **Symptoms:** Redness, squinting, excessive tearing, or yellow/green pus discharge.\n"
-            "- **First Aid:** Gently flush eyes with sterile normal saline to wash away dust and foreign particles.\n"
-            "- *Important Warning:* Never use leftover human eye drops containing corticosteroids without veterinary corneal stain testing — steroids cause blindness if a corneal ulcer is present!"
-        )
-
-    # 13. Diet, Feeding, Safe & Toxic Foods
-    elif any(k in q for k in ["food", "feed", "diet", "nutrition", "what to feed", "curd", "dahi", "milk", "egg", "rice", "meat", "eating", "not eating", "appetite"]):
-        text = (
-            "**Canine & Pet Nutrition Master Guide:**\n\n"
-            "**1. Wholesome, Safe Everyday Foods:**\n"
-            "- **Proteins:** Boiled skinless chicken, boiled eggs (excellent for coat), fresh unsalted paneer, and debone fish.\n"
-            "- **Carbohydrates & Fiber:** Plain boiled white or brown rice, boiled oats, steamed carrots, green beans, and boiled pumpkin (great for digestion).\n"
-            "- **Probiotics:** Plain unsweetened curd/dahi in moderation improves digestion and stool consistency.\n\n"
-            "**2. Foods Strictly Forbidden & Dangerous:**\n"
-            "- **Never feed:** Onions, garlic, chocolates, raisins, grapes, avocado, sugar-free sweets (xylitol), spicy curries, or caffeine.\n"
-            "- **Cooked Bones:** Cooked bones splinter into razor-sharp shards, causing stomach punctures and intestinal blockages.\n"
-            "- **Whole Cow's Milk:** Most adult dogs are lactose intolerant; whole milk causes diarrhea and gas.\n\n"
-            "**3. Loss of Appetite (Anorexia) Care:**\n"
-            "- Warm up meals to release aroma. Mix in warm bone broth or boiled chicken water.\n"
-            "- If an animal refuses food for more than 24-36 hours, investigate for underlying fever, liver, or kidney issues."
-        )
-
-    # 14. Pregnancy, Whelping, Heat Cycle & Newborn Care
-    elif any(k in q for k in ["pregnant", "pregnancy", "whelping", "labor", "delivery", "heat cycle", "giving birth", "pup birth", "newborn", "calving"]):
-        text = (
-            "**Reproduction, Pregnancy & Whelping Care:**\n\n"
-            "**1. Canine Pregnancy Essentials:**\n"
-            "- **Gestation Period:** 58 to 68 days (average 63 days).\n"
-            "- **Diet in Late Pregnancy:** From week 6 onward, transition mother to puppy food to provide extra calcium and protein for developing fetuses.\n\n"
-            "**2. Signs of Impending Labor:**\n"
-            "- Rectal temperature drops below **99.0°F (37.2°C)** approximately 12-24 hours prior to active labor.\n"
-            "- Nesting behavior, restlessness, panting, and refusal of food.\n\n"
-            "**3. Normal Delivery vs Dystocia (Emergency):**\n"
-            "- Pups typically arrive every 30-60 minutes. The mother should tear the amniotic sac and stimulate breathing by licking.\n"
-            "- **Call Emergency Vet if:**\n"
-            "  * Active abdominal contractions last >45 minutes without producing a puppy.\n"
-            "  * Dark green discharge appears before the first puppy is born.\n"
-            "  * More than 2 hours pass between puppies with known pups remaining inside."
-        )
-
-    # 15. Bovine Specific: Mastitis, LSD, Milk Fever, ROP
-    elif (is_cow or is_buffalo) and any(k in q for k in ["mastitis", "thanela", "udder", "teat", "watery milk", "lumpy", "lsd", "milk fever", "placenta", "rop"]):
-        if any(k in q for k in ["mastitis", "thanela", "udder", "teat", "watery milk"]):
+    # 5. Bovine Specific Conditions (Mastitis, LSD, Milk Fever, ROP, Udder, Teat) - Checked before general milk/diet
+    elif (is_cow or is_buffalo or any(k in q for k in ["cow", "cattle", "buffalo", "calf"])) and any(k in q for k in ["mastitis", "thanela", "udder", "teat", "watery milk", "clots in milk", "lumpy", "lsd", "milk fever", "placenta", "rop", "downer cow"]):
+        if any(k in q for k in ["mastitis", "thanela", "udder", "teat", "watery milk", "clots in milk"]):
             text = (
                 "**Bovine Mastitis (थनैला रोग) Care & Protocol:**\n\n"
                 "Mastitis is an inflammatory bacterial infection of the mammary gland that damages milk quality and animal welfare.\n\n"
@@ -1489,7 +1306,190 @@ def generate_fallback_vet_response(messages):
                 "- Administer uterine ecbolics (*Exapar / Replanta*) and veterinary antibiotic coverage if retained beyond 12 hours."
             )
 
-    # 16. General Livestock (Cow, Buffalo, Goat, Sheep, Poultry, Cat, Rabbit, Horse)
+    # 6. Eye & Ear Conditions (Checked before general skin scratching)
+    elif any(k in q for k in ["ear", "ears", "discharge", "conjunctivitis", "ear mite", "head shaking", "cloudy eye", "smelly ear", "scratching ear", "scratch ear"]):
+        text = (
+            "**Eye & Ear Health Protocols:**\n\n"
+            "**1. Ear Infections & Ear Mites (Otitis Externa):**\n"
+            "- **Symptoms:** Continuous head shaking, scratching ears, foul odor, dark coffee-ground wax.\n"
+            "- **Care:** Clean the outer ear flap with cotton pads soaked in a veterinary ear cleanser. **Never insert cotton ear buds (Q-tips)** deep into the canal as you will pack debris against the eardrum.\n"
+            "- Treat with veterinary antifungal/antibacterial drops (*Otomax / Pomisol*) prescribed by your vet.\n\n"
+            "**2. Eye Irritations & Infections:**\n"
+            "- **Symptoms:** Redness, squinting, excessive tearing, or yellow/green pus discharge.\n"
+            "- **First Aid:** Gently flush eyes with sterile normal saline to wash away dust and foreign particles.\n"
+            "- *Important Warning:* Never use leftover human eye drops containing corticosteroids without veterinary corneal stain testing — steroids cause blindness if a corneal ulcer is present!"
+        )
+
+    # 7. Wounds, Cuts, Bleeding, Bites, Maggots
+    elif any(k in q for k in ["wound", "bleed", "bleeding", "cut", "injury", "bitten", "dog bite", "maggot", "pus", "abscess", "sore"]):
+        text = (
+            "**First Aid for Wounds, Cuts, Bites & Maggot Care:**\n\n"
+            "**1. Active Bleeding First Aid:**\n"
+            "- Apply direct, continuous pressure over the bleeding site with a clean, sterile cloth or gauze for 5-10 full minutes without lifting to check.\n"
+            "- Elevate the injured limb if possible.\n\n"
+            "**2. Wound Cleaning & Disinfection:**\n"
+            "- Flush the area gently with sterile normal saline or clean lukewarm water to remove dirt.\n"
+            "- Disinfect with diluted **Povidone-Iodine (Betadine 5%)**. Do not pour neat hydrogen peroxide into deep wounds as it destroys healthy healing tissue.\n\n"
+            "**3. Maggot Infested Wounds:**\n"
+            "- Maggot wounds spread rapidly into deep muscle. Apply turpentine oil soaked gauze plugs or spray veterinary **Topicure / D-Mag spray** to paralyze and extract maggots.\n"
+            "- Requires systemic veterinary antibiotic coverage and subcutaneous Ivermectin.\n\n"
+            "**4. Animal Bites (Rabies Alert):**\n"
+            "- Wash bite punctures thoroughly under high-pressure running tap water with soap for at least 15 minutes.\n"
+            "- Visit a vet immediately for Anti-Rabies booster and broad-spectrum antibiotics to prevent abscess formation."
+        )
+
+    # 8. Limping, Leg Pain, Joint Issues, Arthritis, Fractures
+    elif any(k in q for k in ["limp", "limping", "leg", "paw", "joint", "fracture", "broken bone", "sprain", "arthritis", "hip dysplasia", "can't walk", "unable to stand"]):
+        text = (
+            "**Orthopedic Care & Limping Protocol:**\n\n"
+            "Limping indicates pain or structural compromise in bone, ligament, muscle, or paw pad.\n\n"
+            "**1. Inspection & Triage:**\n"
+            "- **Check Paw Pads First:** Examine between toes for thorn punctures, glass shards, ticks, or torn toenails.\n"
+            "- **Swelling & Heat:** Gently feel the joint and leg bones for warmth, acute tenderness, or abnormal bending.\n\n"
+            "**2. Immediate Care & Immobilization:**\n"
+            "- Enforce **strict cage / room rest**. Restrict stairs, running, and jumping on furniture.\n"
+            "- For acute trauma (within 24 hours), apply a cold ice pack wrapped in a clean towel for 10 minutes to reduce inflammation.\n\n"
+            "**3. Critical Medication Warning:**\n"
+            "- **NEVER give human painkillers** (Paracetamol, Combiflam, Aspirin, or Ibuprofen). They cause severe stomach ulcers, acute renal failure, and death in animals.\n"
+            "- Only use vet-prescribed veterinary NSAIDs (such as *Meloxicam* or *Carprofen*) dosed precisely by weight.\n"
+            "- An X-ray is required if the pet refuses to bear any weight for more than 24 hours."
+        )
+
+    # 9. Coughing, Sneezing, Respiratory Issues, Kennel Cough
+    elif any(k in q for k in ["cough", "coughing", "sneeze", "sneezing", "breathing", "breath", "kennel cough", "wheezing", "gasping", "asthma", "choking"]):
+        text = (
+            "**Respiratory Health & Coughing Protocol:**\n\n"
+            "**1. Common Conditions:**\n"
+            "- **Kennel Cough (Bordetella / Parainfluenza):** Characterized by a harsh, dry, hacking 'goose-honk' cough, often ending in a retching gag as if choking on something.\n"
+            "- **Cardiac Cough:** Soft, moist nocturnal cough in older pets due to heart valve disease or fluid congestion.\n"
+            "- **Allergic Bronchitis / Pneumonia:** Wheezing, nasal discharge, and elevated body temperature.\n\n"
+            "**2. Comfort & Supportive Home Care:**\n"
+            "- **Steam Inhalation:** Bring your pet into the bathroom while running a hot shower for 10-15 minutes; warm steam loosens airway mucus.\n"
+            "- Provide **1 teaspoon of pure natural honey** (for dogs over 1 year old) 2-3 times daily to coat and soothe the irritated trachea.\n"
+            "- Switch from a neck collar to a chest harness to eliminate airway pressure.\n\n"
+            "**3. Emergency Symptoms:**\n"
+            "- Bluish/purple tongue or gums, flared nostrils, gasping with neck extended, or fever above 103.5°F require emergency veterinary oxygen therapy."
+        )
+
+    # 10. Vomiting, Diarrhea, Loose Motions, Parvovirus Triage
+    elif any(k in q for k in ["vomit", "puke", "throw up", "diarrhea", "loose motion", "watery stool", "upset stomach", "gastric", "parvo"]):
+        text = (
+            "**Gastrointestinal Care (Vomiting & Diarrhea Protocol):**\n\n"
+            "Gastrointestinal distress can range from a minor dietary indiscretion to a life-threatening viral infection like Parvovirus.\n\n"
+            "**1. Immediate At-Home Care Steps:**\n"
+            "- **Gut Rest:** For adult dogs, withhold heavy food for 6 to 8 hours to allow the inflamed stomach lining to settle. *(Never fast young puppies under 4 months due to risk of hypoglycemia).*\n"
+            "- **Hydration Therapy:** Offer small, frequent sips (1-2 tablespoons every 20 minutes) of fresh water, oral rehydration salts (ORS/Electral), or boiled rice water. Do not let them gulp huge bowls of water at once.\n"
+            "- **Transition to Bland Diet:** Once vomiting has ceased for 8 hours, offer small portions of boiled white rice mixed with shredded boiled skinless chicken breast or plain fresh curd (dahi).\n\n"
+            "**2. Critical Red Flags (Seek Urgent Vet Care):**\n"
+            "- **Unvaccinated Puppy:** Sudden foul-smelling, bloody diarrhea accompanied by extreme lethargy and fever is the hallmark of **Canine Parvovirus**, requiring emergency IV fluids and antiemetics.\n"
+            "- Blood in vomit (looks like coffee grounds) or bright red blood in stools.\n"
+            "- Continuous retching without bringing anything up (sign of life-threatening Bloat / GDV).\n"
+            "- Inability to keep even water down for more than 12 hours."
+        )
+
+    # 11. Ticks, Fleas, Mange, Itching, Scratching, Skin Infections, Hair Loss
+    elif any(k in q for k in ["tick", "flea", "mange", "itch", "scratch", "hair loss", "losing hair", "bald", "skin", "rash", "hot spot", "allergy", "fungal", "scab", "crust", "ringworm", "dermatitis"]):
+        text = (
+            "**Canine & Pet Skin Care, Ticks & Itch Relief:**\n\n"
+            "Persistent scratching, biting at paws, or hair loss indicates ectoparasites, fungal infections, or allergic dermatitis.\n\n"
+            "**1. Identifying the Root Cause:**\n"
+            "- **Ticks & Fleas:** Look between toes, inside ear flaps, under armpits, and groin. Ticks transmit dangerous blood parasites (Babesiosis / Tick Fever).\n"
+            "- **Mange (Sarcoptic vs Demodectic):** Sarcoptic mange causes intense, relentless itching and crusting; Demodex causes patchy hair loss around the eyes and muzzle.\n"
+            "- **Hot Spots (Moist Dermatitis):** Red, oozing, inflamed patches that develop rapidly from licking/chewing a single area.\n"
+            "- **Fungal / Ringworm:** Circular bald patches with scaly, flaky edges.\n\n"
+            "**2. Immediate Home Care & Safe First Aid:**\n"
+            "- **Neem Water Rinse:** Boil fresh neem leaves in water, cool completely, and use as a soothing final rinse after baths.\n"
+            "- **Medicated Shampoo:** Bathe with a veterinary **Chlorhexidine (2-4%) + Ketoconazole** shampoo. Lather thoroughly and let it sit on the skin for 10 full minutes before rinsing.\n"
+            "- **Hot Spot Care:** Gently clip away hair around the wound. Clean with diluted Povidone-Iodine (Betadine 5%) or chlorhexidine. Keep the area completely dry.\n"
+            "- **Prevent Licking:** Use an Elizabethan collar (cone) to prevent secondary bacterial infection from constant licking.\n\n"
+            "**3. Veterinary Tick & Flea Control:**\n"
+            "- Modern chewable tablets (*Fluralaner / Bravecto* or *Sarolaner / Simparica*) or spot-ons (*Fipronil*) provide 1-3 months of comprehensive protection against ticks, fleas, and mange.\n"
+            "- *Important Warning:* Never use engine oil, diesel, or human antiseptics (Dettol/Savlon) on animal skin — they are toxic if licked!"
+        )
+
+    # 12. Biting, Chewing, Barking, Training, Potty Training & Anxiety
+    elif any(k in q for k in ["biting", "bite", "chewing", "chew", "barking", "bark", "aggression", "aggressive", "anxiety", "training", "potty training", "pee inside", "toilet training", "chew shoes", "chewing furniture"]):
+        text = (
+            "**Canine Behavior, Training & Habit Correction:**\n\n"
+            "Understanding canine developmental psychology is the secret to resolving unwanted behavioral issues permanently.\n\n"
+            "**1. Puppy Biting & Mouthing (Teething):**\n"
+            "- Puppies explore everything with teeth between 3 to 7 months as adult teeth emerge.\n"
+            "- **The 'Ouch!' Technique:** When teeth touch your skin or clothes, immediately let out a sharp, high-pitched *'Ouch!'*, freeze, and completely withdraw attention for 30 seconds. This teaches bite inhibition.\n"
+            "- **Redirection:** Always have a rubber chew toy, rope, or cold carrot ready. Swap your hand/shoes for the toy and praise enthusiastically when they chew the toy.\n\n"
+            "**2. Successful Potty & House Training:**\n"
+            "- Follow the **2-Hour Rule:** Take puppies outside every 2 hours, plus immediately after waking up, eating, and energetic play.\n"
+            "- Pick a dedicated outdoor spot. Stand quietly until they relieve themselves, then reward immediately with a treat and praise within 3 seconds.\n"
+            "- *Never punish indoor accidents after the fact:* Dogs cannot connect punishment with past events; scolding creates anxiety and leads them to hide accidents or eat feces.\n\n"
+            "**3. Excessive Barking & Separation Anxiety:**\n"
+            "- Ensure at least 30-45 minutes of vigorous exercise and mental games (snuffle mats, fetch) daily.\n"
+            "- Practice calm departures without long emotional goodbyes. Leave an item of clothing with your scent in their resting area."
+        )
+
+    # 13. Vaccines & Deworming
+    elif any(k in q for k in ["vaccin", "vaccine", "vaccination", "shot", "deworm", "deworming", "schedule", "rabies", "dhppi", "dewormer"]):
+        if is_cow or is_buffalo:
+            text = (
+                "**Bovine & Livestock Vaccination / Deworming Protocol:**\n\n"
+                "**1. Cattle & Buffalo Vaccination Schedule:**\n"
+                "- **Foot and Mouth Disease (FMD):** Twice annually (pre-monsoon and post-monsoon).\n"
+                "- **Hemorrhagic Septicemia (HS - गलघोंटू):** Annually in May/June before monsoon rains.\n"
+                "- **Black Quarter (BQ - लंगड़ा बुखार):** Annually in May/June alongside HS.\n"
+                "- **Lumpy Skin Disease (LSD):** Heterologous Goat Pox vaccine (3ml S/C) annually.\n"
+                "- **Brucellosis (Cotton Strain 19):** Single lifetime dose for female calves aged 4-8 months.\n\n"
+                "**2. Deworming Schedule:**\n"
+                "- Deworm adult cattle before monsoon (June) and after monsoon (October).\n"
+                "- Rotate dewormer classes (Albendazole, Fenbendazole, Ivermectin, Oxyclozanide) to prevent parasite resistance."
+            )
+        else:
+            text = (
+                "**Canine Vaccination & Deworming Master Schedule:**\n\n"
+                "**1. Core Puppy Vaccination Timeline:**\n"
+                "- **6 to 8 Weeks:** 1st DHPPi / Puppy DP (Distemper, Hepatitis, Parvovirus, Parainfluenza).\n"
+                "- **10 to 12 Weeks:** 2nd DHPPi Booster + Leptospirosis + Canine Coronavirus.\n"
+                "- **14 to 16 Weeks:** 3rd DHPPi Booster + Anti-Rabies Vaccine (ARV) + Kennel Cough.\n"
+                "- **Adult Boosters:** Annual single booster for DHPPi and Anti-Rabies every year for life.\n\n"
+                "**2. Complete Deworming Protocol:**\n"
+                "- **Puppies:** Every 2 weeks until 3 months of age, then monthly until 6 months of age.\n"
+                "- **Adult Dogs:** Every 3 months (4 times a year) using broad-spectrum veterinary tablets (*Praziquantel + Pyrantel Embonate + Febantel*, 1 tablet per 10 kg body weight).\n"
+                "- Weigh your dog before dosing to ensure accurate therapeutic effectiveness."
+            )
+
+    # 14. Pregnancy, Whelping, Heat Cycle & Newborn Care
+    elif any(k in q for k in ["pregnant", "pregnancy", "whelping", "labor", "delivery", "heat cycle", "giving birth", "pup birth", "newborn", "calving"]):
+        text = (
+            "**Reproduction, Pregnancy & Whelping Care:**\n\n"
+            "**1. Canine Pregnancy Essentials:**\n"
+            "- **Gestation Period:** 58 to 68 days (average 63 days).\n"
+            "- **Diet in Late Pregnancy:** From week 6 onward, transition mother to puppy food to provide extra calcium and protein for developing fetuses.\n\n"
+            "**2. Signs of Impending Labor:**\n"
+            "- Rectal temperature drops below **99.0°F (37.2°C)** approximately 12-24 hours prior to active labor.\n"
+            "- Nesting behavior, restlessness, panting, and refusal of food.\n\n"
+            "**3. Normal Delivery vs Dystocia (Emergency):**\n"
+            "- Pups typically arrive every 30-60 minutes. The mother should tear the amniotic sac and stimulate breathing by licking.\n"
+            "- **Call Emergency Vet if:**\n"
+            "  * Active abdominal contractions last >45 minutes without producing a puppy.\n"
+            "  * Dark green discharge appears before the first puppy is born.\n"
+            "  * More than 2 hours pass between puppies with known pups remaining inside."
+        )
+
+    # 15. Diet, Feeding, Safe & Toxic Foods (Evaluated after specific bovine milk diseases)
+    elif any(k in q for k in ["food", "feed", "diet", "nutrition", "what to feed", "curd", "dahi", "milk", "egg", "rice", "meat", "eating", "not eating", "appetite"]):
+        text = (
+            "**Canine & Pet Nutrition Master Guide:**\n\n"
+            "**1. Wholesome, Safe Everyday Foods:**\n"
+            "- **Proteins:** Boiled skinless chicken, boiled eggs (excellent for coat), fresh unsalted paneer, and debone fish.\n"
+            "- **Carbohydrates & Fiber:** Plain boiled white or brown rice, boiled oats, steamed carrots, green beans, and boiled pumpkin (great for digestion).\n"
+            "- **Probiotics:** Plain unsweetened curd/dahi in moderation improves digestion and stool consistency.\n\n"
+            "**2. Foods Strictly Forbidden & Dangerous:**\n"
+            "- **Never feed:** Onions, garlic, chocolates, raisins, grapes, avocado, sugar-free sweets (xylitol), spicy curries, or caffeine.\n"
+            "- **Cooked Bones:** Cooked bones splinter into razor-sharp shards, causing stomach punctures and intestinal blockages.\n"
+            "- **Whole Cow's Milk:** Most adult dogs are lactose intolerant; whole milk causes diarrhea and gas.\n\n"
+            "**3. Loss of Appetite (Anorexia) Care:**\n"
+            "- Warm up meals to release aroma. Mix in warm bone broth or boiled chicken water.\n"
+            "- If an animal refuses food for more than 24-36 hours, investigate for underlying fever, liver, or kidney issues."
+        )
+
+    # 16. General Livestock Fallbacks (Cow, Buffalo, Goat, Sheep, Poultry, Cat, Rabbit, Horse)
     elif is_cow or is_buffalo:
         text = (
             "**Cattle & Buffalo Healthcare & Herd Wellness:**\n\n"
