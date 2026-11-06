@@ -1174,204 +1174,422 @@ def generate_fallback_vet_response(messages):
     words = q.split()
     first_word = words[0] if words else ""
 
-    # Natural greeting responses
+    # Detect animal context
+    is_dog = any(k in q for k in ["dog", "puppy", "canine", "pup", "hound", "bitch"])
+    is_cat = any(k in q for k in ["cat", "kitten", "feline", "kitty"])
+    is_cow = any(k in q for k in ["cow", "cattle", "calf", "bovine", "bull", "ox", "heifer"])
+    is_buffalo = any(k in q for k in ["buffalo", "murrah", "water buffalo"])
+    is_goat = any(k in q for k in ["goat", "sheep", "lamb", "kid", "ram", "ewe"])
+    is_poultry = any(k in q for k in ["chicken", "hen", "rooster", "poultry", "bird", "duck", "chick"])
+    is_horse = any(k in q for k in ["horse", "equine", "mare", "stallion", "colt", "foal", "pony"])
+    is_rabbit = any(k in q for k in ["rabbit", "bunny"])
+    is_bird = any(k in q for k in ["parrot", "pigeon", "parakeet", "budgie", "cockatiel", "crow"])
+
+    # 1. Greetings & System Introduction
     if any(k in words for k in ["hi", "hello", "hey", "namaste", "halo", "greetings"]) or first_word in ["hi", "hello", "hey"]:
         text = (
             "**Hello! Welcome to Know Your Animal AI Health Assistant.** 🐾\n\n"
-            "I'm here 24/7 to provide instant veterinary guidance for your pets and farm livestock. I can assist you with:\n"
-            "- **Symptom diagnosis & triage** (fever, bloat, digestive issues, skin conditions)\n"
-            "- **Emergency first-aid guidance** and home care before seeing a vet\n"
-            "- **Vaccination, deworming & nutrition** for cows, dogs, goats, poultry, and cats\n"
-            "- **Govt 1962 SOS animal ambulance** and clinic connections\n\n"
-            "How can I help you and your animal today? Please tell me which animal you have and what symptoms you've noticed."
+            "I'm here 24/7 to provide instant, expert veterinary guidance for your pets and farm livestock. I can assist you with:\n"
+            "- **Specific Clinical Concerns:** Fever, digestive upset, skin allergies, limping, wounds\n"
+            "- **Behavior & Habits:** Poop eating (coprophagia), biting, excessive barking, potty training\n"
+            "- **Nutrition & Safe Feeding:** Wholesome foods vs strictly toxic foods\n"
+            "- **Emergency Protocols & First Aid:** Poisoning, bloat, heat stroke, trauma\n"
+            "- **Vaccination & Deworming:** Complete schedules for dogs, cats, cows, goats, and poultry\n"
+            "- **National 1962 SOS Animal Ambulance:** Direct escalation when emergency care is required\n\n"
+            "Please tell me which animal you have and what specific question or concern you'd like answered!"
         )
-    elif any(k in q for k in ["cow", "cattle", "calf", "bovine"]):
-        if any(k in q for k in ["fever", "hot", "temperature"]):
+
+    # 2. Coprophagia / Dogs Eating Poop / Stool Eating
+    elif any(k in q for k in ["poop", "eating poop", "eating their own poop", "eats poop", "eat poop", "coprophagia", "feces", "stool eating", "potty eating", "eat potty", "eat stool", "eating waste", "eating dirt", "eating soil", "eating mud"]):
+        text = (
+            "**Managing & Stopping Coprophagia (Poop Eating in Dogs):**\n\n"
+            "Dogs eating feces (medically termed **Coprophagia**) is a very common but frustrating concern. While distressing to owners, it is manageable once the root cause is addressed.\n\n"
+            "**1. Why Do Dogs Eat Poop? (Primary Causes)**\n"
+            "- **Digestive Enzyme & Nutrient Deficiency:** If your dog cannot fully digest or absorb their food, the stool still smells and tastes like undigested food to them. Low-quality commercial food with excessive grain fillers often triggers this.\n"
+            "- **Intestinal Parasites:** Roundworms or tapeworms leech essential nutrients, leaving the dog feeling constantly malnourished.\n"
+            "- **Boredom & Anxiety:** Dogs left alone for long periods or lacking mental stimulation often develop pica (eating non-food items).\n"
+            "- **Learned Cleanliness / Fear Reaction:** Mother dogs naturally clean up puppy stool. Puppies also copy this. Additionally, dogs punished harshly for indoor potty accidents often eat feces to 'hide the evidence'.\n\n"
+            "**2. Immediate Actionable Solutions & Home Remedies:**\n"
+            "- **Prompt Environmental Management (Most Effective):** Clean up all stool immediately after your dog defecates so they never have access. Walk your dog on a leash so you can guide them away instantly.\n"
+            "- **Natural Dietary Deterrents:**\n"
+            "  * Add **1-2 tablespoons of plain canned pure pumpkin puree** or **fresh pineapple chunks** to their meals daily. The enzymes (bromelain in pineapple) taste appealing going in, but make stool extremely unpalatable coming out.\n"
+            "  * Add 1-2 spoons of plain unsweetened curd/yogurt to restore natural probiotic gut flora.\n"
+            "- **Veterinary Anti-Coprophagia Chewables:** OTC chewable deterrents (such as *For-Bid* or *Potty Mouth*) harmlessly make fecal matter bitter and repulsive to the dog.\n"
+            "- **Switch to Higher Quality Protein:** Feed high-digestibility food rich in animal protein and lower in grain fillers.\n\n"
+            "**3. Training & Behavioral Techniques:**\n"
+            "- **Master the 'Leave It' Command:** Keep high-value treats (boiled chicken breast or cheese cubes) on walks. The moment your dog finishes pooping, enthusiastically call their name, command *'Leave it!'*, and reward them generously when they turn towards you.\n"
+            "- **Increase Mental Stimulation:** Provide durable chew toys, frozen KONGs, snuffle mats, and extra daily exercise to eliminate boredom.\n\n"
+            "**4. When to Consult a Veterinarian:**\n"
+            "- Have your vet run a **routine fecal test** to screen for intestinal worms and rule out Exocrine Pancreatic Insufficiency (EPI) or malabsorption."
+        )
+
+    # 3. Ticks, Fleas, Mange, Itching, Scratching, Skin Infections, Hair Loss
+    elif any(k in q for k in ["tick", "flea", "mange", "itch", "scratch", "hair loss", "losing hair", "bald", "skin", "rash", "hot spot", "allergy", "fungal", "scab", "crust", "ringworm", "dermatitis"]):
+        text = (
+            "**Canine & Pet Skin Care, Ticks & Itch Relief:**\n\n"
+            "Persistent scratching, biting at paws, or hair loss indicates ectoparasites, fungal infections, or allergic dermatitis.\n\n"
+            "**1. Identifying the Root Cause:**\n"
+            "- **Ticks & Fleas:** Look between toes, inside ear flaps, under armpits, and groin. Ticks transmit dangerous blood parasites (Babesiosis / Tick Fever).\n"
+            "- **Mange (Sarcoptic vs Demodectic):** Sarcoptic mange causes intense, relentless itching and crusting; Demodex causes patchy hair loss around the eyes and muzzle.\n"
+            "- **Hot Spots (Moist Dermatitis):** Red, oozing, inflamed patches that develop rapidly from licking/chewing a single area.\n"
+            "- **Fungal / Ringworm:** Circular bald patches with scaly, flaky edges.\n\n"
+            "**2. Immediate Home Care & Safe First Aid:**\n"
+            "- **Neem Water Rinse:** Boil fresh neem leaves in water, cool completely, and use as a soothing final rinse after baths.\n"
+            "- **Medicated Shampoo:** Bathe with a veterinary **Chlorhexidine (2-4%) + Ketoconazole** shampoo. Lather thoroughly and let it sit on the skin for 10 full minutes before rinsing.\n"
+            "- **Hot Spot Care:** Gently clip away hair around the wound. Clean with diluted Povidone-Iodine (Betadine 5%) or chlorhexidine. Keep the area completely dry.\n"
+            "- **Prevent Licking:** Use an Elizabethan collar (cone) to prevent secondary bacterial infection from constant licking.\n\n"
+            "**3. Veterinary Tick & Flea Control:**\n"
+            "- Modern chewable tablets (*Fluralaner / Bravecto* or *Sarolaner / Simparica*) or spot-ons (*Fipronil*) provide 1-3 months of comprehensive protection against ticks, fleas, and mange.\n"
+            "- *Important Warning:* Never use engine oil, diesel, or human antiseptics (Dettol/Savlon) on animal skin — they are toxic if licked!"
+        )
+
+    # 4. Vomiting, Diarrhea, Loose Motions, Parvovirus Triage
+    elif any(k in q for k in ["vomit", "puke", "throw up", "diarrhea", "loose motion", "watery stool", "upset stomach", "gastric", "parvo"]):
+        text = (
+            "**Gastrointestinal Care (Vomiting & Diarrhea Protocol):**\n\n"
+            "Gastrointestinal distress can range from a minor dietary indiscretion to a life-threatening viral infection like Parvovirus.\n\n"
+            "**1. Immediate At-Home Care Steps:**\n"
+            "- **Gut Rest:** For adult dogs, withhold heavy food for 6 to 8 hours to allow the inflamed stomach lining to settle. *(Never fast young puppies under 4 months due to risk of hypoglycemia).*\n"
+            "- **Hydration Therapy:** Offer small, frequent sips (1-2 tablespoons every 20 minutes) of fresh water, oral rehydration salts (ORS/Electral), or boiled rice water. Do not let them gulp huge bowls of water at once.\n"
+            "- **Transition to Bland Diet:** Once vomiting has ceased for 8 hours, offer small portions of boiled white rice mixed with shredded boiled skinless chicken breast or plain fresh curd (dahi).\n\n"
+            "**2. Critical Red Flags (Seek Urgent Vet Care):**\n"
+            "- **Unvaccinated Puppy:** Sudden foul-smelling, bloody diarrhea accompanied by extreme lethargy and fever is the hallmark of **Canine Parvovirus**, requiring emergency IV fluids and antiemetics.\n"
+            "- Blood in vomit (looks like coffee grounds) or bright red blood in stools.\n"
+            "- Continuous retching without bringing anything up (sign of life-threatening Bloat / GDV).\n"
+            "- Inability to keep even water down for more than 12 hours."
+        )
+
+    # 5. Bloat / GDV (Dogs & Cattle)
+    elif any(k in q for k in ["bloat", "tympanites", "swollen belly", "distended", "gas in stomach", "twisted stomach", "afra"]):
+        if is_cow or is_buffalo or is_goat:
             text = (
-                "**Bovine Fever Care:**\n\n"
-                "A normal body temperature for adult cattle is between 101.5°F and 102.5°F (38.6°C - 39.2°C). High fever is often an early sign of conditions like Foot and Mouth Disease (FMD), Babesiosis (Tick fever), or Haemorrhagic Septicaemia (HS).\n\n"
-                "**Immediate Actions:**\n"
-                "- Keep the cow in a well-ventilated, shaded area with clean dry bedding.\n"
-                "- Provide fresh, cool drinking water with electrolytes or a pinch of salt.\n"
-                "- Sponge the animal's forehead and neck with room-temperature water.\n"
-                "- Withhold heavy grain concentrate; offer soft green fodder.\n\n"
-                "*Important: Please contact your local veterinary doctor or mobile clinic promptly to diagnose the root cause and administer appropriate antipyretics or antibiotics.*"
-            )
-        elif any(k in q for k in ["bloat", "stomach", "gas"]):
-            text = (
-                "**Bloat in Cattle (Tympanites):**\n\n"
-                "Bloat occurs when excess gas accumulates in the rumen, often from lush green legumes or wet grass. A distended left flank and labored breathing are critical warning signs.\n\n"
-                "**First Aid:**\n"
-                "- Keep the cow standing and elevate the front quarters if possible.\n"
-                "- Do not allow the animal to lie down if severely bloated.\n"
-                "- Administer edible vegetable oil (200-300 ml) or an anti-bloat suspension as recommended by a vet.\n"
-                "- Contact an emergency vet immediately if the cow shows severe distress."
+                "**Bovine & Livestock Rumen Bloat (Tympanites / अफरा):**\n\n"
+                "Bloat is a critical digestive emergency where trapped fermentation gases rapidly distend the rumen, putting deadly pressure on the lungs and diaphragm.\n\n"
+                "**Immediate First Aid Actions:**\n"
+                "- Keep the animal standing with front quarters elevated on a slope or mound.\n"
+                "- Drench orally with **200-300 ml of edible vegetable or mustard oil** mixed with 20-30 ml of turpentine oil or commercial anti-bloat drench (*Bloatosil / Tympanol*) to break down frothy gas bubbles.\n"
+                "- Place a wooden bit across the mouth to stimulate continuous chewing and belching.\n"
+                "- Withhold all grain and wet lush legumes immediately.\n"
+                "- **Emergency:** If the left flank is drum-tight and the animal has labored mouth-breathing, call a local vet immediately for trochar cannula puncture."
             )
         else:
             text = (
-                "**Cattle Healthcare & Nutrition:**\n\n"
-                "For optimum health and milk yield, ensure your cattle receive clean drinking water, balanced dry and green fodder, and regular mineral mixture supplements (50g daily).\n\n"
-                "**Preventive Checklist:**\n"
-                "- Routine deworming every 3-4 months.\n"
-                "- Annual vaccinations for Foot and Mouth Disease (FMD), HS, and BQ.\n"
-                "- Regular tick and ectoparasite management.\n\n"
-                "*Consult a registered veterinarian for any acute illness or sudden drop in milk yield.*"
+                "**CRITICAL EMERGENCY: Canine Bloat & GDV (Gastric Dilatation-Volvulus):**\n\n"
+                "Bloat in dogs (especially deep-chested breeds like German Shepherds, Great Danes, Labradors, and Boxers) occurs when the stomach fills with gas and twists on its axis.\n\n"
+                "**Life-Threatening Warning Signs:**\n"
+                "- Distended, hard, drum-like abdomen.\n"
+                "- Unproductive retching (trying to vomit but only white foam comes out).\n"
+                "- Restless pacing, looking at flank, drooling, and rapid shallow breathing.\n\n"
+                "**Action Required Immediately:**\n"
+                "- **Do not attempt home remedies or wait to see if it passes.** GDV cuts off blood flow to the heart and stomach wall, causing fatal shock within 2-4 hours.\n"
+                "- Rush your dog to the nearest 24/7 veterinary emergency hospital for surgical decompression immediately."
             )
-    elif any(k in q for k in ["dog", "puppy", "canine"]):
-        if any(k in q for k in ["fever", "temperature", "warm"]):
+
+    # 6. Toxic Food Ingestion & Poisoning
+    elif any(k in q for k in ["poison", "toxic", "toxicity", "chocolate", "onion", "garlic", "grape", "raisin", "xylitol", "rat poison", "swallowed pill", "paracetamol", "crocin", "ibuprofen"]):
+        text = (
+            "**EMERGENCY TRIAGE: Poisoning & Toxic Ingestion:**\n\n"
+            "Animals metabolize chemicals differently than humans. Substances safe for people can be lethal to pets.\n\n"
+            "**1. Highly Toxic Everyday Substances:**\n"
+            "- **Chocolate:** Contains theobromine; causes cardiac arrhythmias, tremors, and seizures (dark chocolate is most dangerous).\n"
+            "- **Grapes & Raisins:** Can cause acute, sudden irreversible kidney failure even in microscopic quantities.\n"
+            "- **Onions, Garlic, & Chives:** Cause oxidative damage to red blood cells, leading to severe hemolytic anemia.\n"
+            "- **Xylitol (Artificial Sweetener in peanut butter/sugar-free gum):** Causes catastrophic hypoglycemia and acute liver necrosis.\n"
+            "- **Human Painkillers (Paracetamol/Crocin, Ibuprofen/Combiflam):** Severely toxic; even a single Paracetamol tablet causes fatal liver and blood destruction in cats and dogs.\n\n"
+            "**2. Urgent Steps to Take Right Now:**\n"
+            "- Identify the exact substance, estimated quantity, and time elapsed.\n"
+            "- **Do NOT induce vomiting** if the substance was acidic, alkaline, petroleum-based, or if the pet is lethargic, seizing, or unconscious.\n"
+            "- If ingestion occurred within the last 60-90 minutes, contact an emergency vet immediately to safely induce vomiting with veterinary apomorphine or administer medical activated charcoal.\n"
+            "- Call the national **1962 animal helpline** or rush to the nearest emergency veterinary facility."
+        )
+
+    # 7. Biting, Chewing, Barking, Training, Potty Training & Anxiety
+    elif any(k in q for k in ["biting", "bite", "chewing", "chew", "barking", "bark", "aggression", "aggressive", "anxiety", "training", "potty training", "pee inside", "toilet training", "chew shoes", "chewing furniture"]):
+        text = (
+            "**Canine Behavior, Training & Habit Correction:**\n\n"
+            "Understanding canine developmental psychology is the secret to resolving unwanted behavioral issues permanently.\n\n"
+            "**1. Puppy Biting & Mouthing (Teething):**\n"
+            "- Puppies explore everything with teeth between 3 to 7 months as adult teeth emerge.\n"
+            "- **The 'Ouch!' Technique:** When teeth touch your skin or clothes, immediately let out a sharp, high-pitched *'Ouch!'*, freeze, and completely withdraw attention for 30 seconds. This teaches bite inhibition.\n"
+            "- **Redirection:** Always have a rubber chew toy, rope, or cold carrot ready. Swap your hand/shoes for the toy and praise enthusiastically when they chew the toy.\n\n"
+            "**2. Successful Potty & House Training:**\n"
+            "- Follow the **2-Hour Rule:** Take puppies outside every 2 hours, plus immediately after waking up, eating, and energetic play.\n"
+            "- Pick a dedicated outdoor spot. Stand quietly until they relieve themselves, then reward immediately with a treat and praise within 3 seconds.\n"
+            "- *Never punish indoor accidents after the fact:* Dogs cannot connect punishment with past events; scolding creates anxiety and leads them to hide accidents or eat feces.\n\n"
+            "**3. Excessive Barking & Separation Anxiety:**\n"
+            "- Ensure at least 30-45 minutes of vigorous exercise and mental games (snuffle mats, fetch) daily.\n"
+            "- Practice calm departures without long emotional goodbyes. Leave an item of clothing with your scent in their resting area."
+        )
+
+    # 8. Vaccines & Deworming
+    elif any(k in q for k in ["vaccin", "vaccine", "vaccination", "shot", "deworm", "deworming", "schedule", "rabies", "dhppi", "dewormer"]):
+        if is_cow or is_buffalo:
             text = (
-                "**Canine Fever Care:**\n\n"
-                "A dog's normal body temperature is 101.0°F to 102.5°F (38.3°C to 39.2°C). A temperature above 103°F indicates a fever, which could stem from infection, tick-borne diseases, or vaccinations.\n\n"
-                "**Home Care & Precautions:**\n"
-                "- Never give human medications like Paracetamol or Ibuprofen — they are toxic and fatal to dogs!\n"
-                "- Apply cool, damp cloths around the paws, ear flaps, and groin.\n"
-                "- Ensure access to fresh water in small, frequent amounts.\n"
-                "- If fever persists above 103.5°F or is accompanied by lethargy or vomiting, see a veterinarian right away."
-            )
-        elif any(k in q for k in ["vomit", "diarrhea", "loose motion"]):
-            text = (
-                "**Dog Gastrointestinal Issues (Vomiting / Diarrhea):**\n\n"
-                "Mild upset stomach can happen from dietary indiscretion, but severe vomiting/diarrhea (especially bloody) can indicate Parvovirus, parasites, or poisoning.\n\n"
-                "**Steps to take:**\n"
-                "- Withhold heavy food for 6-8 hours while ensuring small sips of water or ORS to prevent dehydration.\n"
-                "- When feeding resumes, offer bland food (boiled rice with boiled chicken or curd).\n"
-                "- Seek urgent veterinary attention if you observe blood, extreme weakness, or if your dog is an unvaccinated puppy."
+                "**Bovine & Livestock Vaccination / Deworming Protocol:**\n\n"
+                "**1. Cattle & Buffalo Vaccination Schedule:**\n"
+                "- **Foot and Mouth Disease (FMD):** Twice annually (pre-monsoon and post-monsoon).\n"
+                "- **Hemorrhagic Septicemia (HS - गलघोंटू):** Annually in May/June before monsoon rains.\n"
+                "- **Black Quarter (BQ - लंगड़ा बुखार):** Annually in May/June alongside HS.\n"
+                "- **Lumpy Skin Disease (LSD):** Heterologous Goat Pox vaccine (3ml S/C) annually.\n"
+                "- **Brucellosis (Cotton Strain 19):** Single lifetime dose for female calves aged 4-8 months.\n\n"
+                "**2. Deworming Schedule:**\n"
+                "- Deworm adult cattle before monsoon (June) and after monsoon (October).\n"
+                "- Rotate dewormer classes (Albendazole, Fenbendazole, Ivermectin, Oxyclozanide) to prevent parasite resistance."
             )
         else:
             text = (
-                "**Dog Care & Wellness:**\n\n"
-                "Proper vaccination (DHPPi + Rabies), regular deworming, and tick control are essential for your dog's longevity and happiness.\n\n"
-                "**Key Tips:**\n"
-                "- Maintain annual rabies and multi-component vaccination schedule.\n"
-                "- Provide daily exercise and balanced nutrition.\n"
-                "- Avoid foods toxic to dogs: chocolate, onions, garlic, grapes, and artificial sweeteners (xylitol).\n\n"
-                "*If your pet is showing unusual symptoms, our expert vet directory can help connect you with nearby clinicians.*"
+                "**Canine Vaccination & Deworming Master Schedule:**\n\n"
+                "**1. Core Puppy Vaccination Timeline:**\n"
+                "- **6 to 8 Weeks:** 1st DHPPi / Puppy DP (Distemper, Hepatitis, Parvovirus, Parainfluenza).\n"
+                "- **10 to 12 Weeks:** 2nd DHPPi Booster + Leptospirosis + Canine Coronavirus.\n"
+                "- **14 to 16 Weeks:** 3rd DHPPi Booster + Anti-Rabies Vaccine (ARV) + Kennel Cough.\n"
+                "- **Adult Boosters:** Annual single booster for DHPPi and Anti-Rabies every year for life.\n\n"
+                "**2. Complete Deworming Protocol:**\n"
+                "- **Puppies:** Every 2 weeks until 3 months of age, then monthly until 6 months of age.\n"
+                "- **Adult Dogs:** Every 3 months (4 times a year) using broad-spectrum veterinary tablets (*Praziquantel + Pyrantel Embonate + Febantel*, 1 tablet per 10 kg body weight).\n"
+                "- Weigh your dog before dosing to ensure accurate therapeutic effectiveness."
             )
-    elif any(k in q for k in ["buffalo", "water buffalo", "murrah"]):
+
+    # 9. Wounds, Cuts, Bleeding, Bites, Maggots
+    elif any(k in q for k in ["wound", "bleed", "bleeding", "cut", "injury", "bitten", "dog bite", "maggot", "pus", "abscess", "sore"]):
         text = (
-            "**Buffalo Health & Veterinary Care:**\n\n"
-            "Water buffaloes require vigilant seasonal monitoring, especially around the monsoon. Key critical diseases include Hemorrhagic Septicemia (HS - गलघोंटू), Black Quarter (BQ), and Surra (सर्रा).\n\n"
-            "**Emergency First Aid & Care:**\n"
-            "- **For Throat Swelling / Labored Breathing (Suspected HS):** Call a vet immediately! Early IV antibiotics (Oxytetracycline or Sulfadimidine) and anti-inflammatories are life-saving within the first 12-24 hours.\n"
-            "- **For Muscular Swelling with Crackling Sound (BQ):** Requires immediate Penicillin therapy before toxins spread.\n"
-            "- **For Intermittent Fever & Wasting (Surra):** Vet administration of Quinapyramine or Diminazene is required.\n"
-            "- Ensure wallowing ponds are clean, and administer annual pre-monsoon HS & BQ vaccinations."
+            "**First Aid for Wounds, Cuts, Bites & Maggot Care:**\n\n"
+            "**1. Active Bleeding First Aid:**\n"
+            "- Apply direct, continuous pressure over the bleeding site with a clean, sterile cloth or gauze for 5-10 full minutes without lifting to check.\n"
+            "- Elevate the injured limb if possible.\n\n"
+            "**2. Wound Cleaning & Disinfection:**\n"
+            "- Flush the area gently with sterile normal saline or clean lukewarm water to remove dirt.\n"
+            "- Disinfect with diluted **Povidone-Iodine (Betadine 5%)**. Do not pour neat hydrogen peroxide into deep wounds as it destroys healthy healing tissue.\n\n"
+            "**3. Maggot Infested Wounds:**\n"
+            "- Maggot wounds spread rapidly into deep muscle. Apply turpentine oil soaked gauze plugs or spray veterinary **Topicure / D-Mag spray** to paralyze and extract maggots.\n"
+            "- Requires systemic veterinary antibiotic coverage and subcutaneous Ivermectin.\n\n"
+            "**4. Animal Bites (Rabies Alert):**\n"
+            "- Wash bite punctures thoroughly under high-pressure running tap water with soap for at least 15 minutes.\n"
+            "- Visit a vet immediately for Anti-Rabies booster and broad-spectrum antibiotics to prevent abscess formation."
         )
-    elif any(k in q for k in ["cat", "kitten", "feline"]):
-        if any(k in q for k in ["urinate", "urine", "pee", "litter", "blocked"]):
+
+    # 10. Limping, Leg Pain, Joint Issues, Arthritis, Fractures
+    elif any(k in q for k in ["limp", "limping", "leg", "paw", "joint", "fracture", "broken bone", "sprain", "arthritis", "hip dysplasia", "can't walk", "unable to stand"]):
+        text = (
+            "**Orthopedic Care & Limping Protocol:**\n\n"
+            "Limping indicates pain or structural compromise in bone, ligament, muscle, or paw pad.\n\n"
+            "**1. Inspection & Triage:**\n"
+            "- **Check Paw Pads First:** Examine between toes for thorn punctures, glass shards, ticks, or torn toenails.\n"
+            "- **Swelling & Heat:** Gently feel the joint and leg bones for warmth, acute tenderness, or abnormal bending.\n\n"
+            "**2. Immediate Care & Immobilization:**\n"
+            "- Enforce **strict cage / room rest**. Restrict stairs, running, and jumping on furniture.\n"
+            "- For acute trauma (within 24 hours), apply a cold ice pack wrapped in a clean towel for 10 minutes to reduce inflammation.\n\n"
+            "**3. Critical Medication Warning:**\n"
+            "- **NEVER give human painkillers** (Paracetamol, Combiflam, Aspirin, or Ibuprofen). They cause severe stomach ulcers, acute renal failure, and death in animals.\n"
+            "- Only use vet-prescribed veterinary NSAIDs (such as *Meloxicam* or *Carprofen*) dosed precisely by weight.\n"
+            "- An X-ray is required if the pet refuses to bear any weight for more than 24 hours."
+        )
+
+    # 11. Coughing, Sneezing, Respiratory Issues, Kennel Cough
+    elif any(k in q for k in ["cough", "coughing", "sneeze", "sneezing", "breathing", "breath", "kennel cough", "wheezing", "gasping", "asthma", "choking"]):
+        text = (
+            "**Respiratory Health & Coughing Protocol:**\n\n"
+            "**1. Common Conditions:**\n"
+            "- **Kennel Cough (Bordetella / Parainfluenza):** Characterized by a harsh, dry, hacking 'goose-honk' cough, often ending in a retching gag as if choking on something.\n"
+            "- **Cardiac Cough:** Soft, moist nocturnal cough in older pets due to heart valve disease or fluid congestion.\n"
+            "- **Allergic Bronchitis / Pneumonia:** Wheezing, nasal discharge, and elevated body temperature.\n\n"
+            "**2. Comfort & Supportive Home Care:**\n"
+            "- **Steam Inhalation:** Bring your pet into the bathroom while running a hot shower for 10-15 minutes; warm steam loosens airway mucus.\n"
+            "- Provide **1 teaspoon of pure natural honey** (for dogs over 1 year old) 2-3 times daily to coat and soothe the irritated trachea.\n"
+            "- Switch from a neck collar to a chest harness to eliminate airway pressure.\n\n"
+            "**3. Emergency Symptoms:**\n"
+            "- Bluish/purple tongue or gums, flared nostrils, gasping with neck extended, or fever above 103.5°F require emergency veterinary oxygen therapy."
+        )
+
+    # 12. Eye & Ear Conditions
+    elif any(k in q for k in ["ear", "ears", "eye", "eyes", "discharge", "conjunctivitis", "ear mite", "head shaking", "cloudy eye", "smelly ear"]):
+        text = (
+            "**Eye & Ear Health Protocols:**\n\n"
+            "**1. Ear Infections & Ear Mites (Otitis Externa):**\n"
+            "- **Symptoms:** Continuous head shaking, scratching ears, foul odor, dark coffee-ground wax.\n"
+            "- **Care:** Clean the outer ear flap with cotton pads soaked in a veterinary ear cleanser. **Never insert cotton ear buds (Q-tips)** deep into the canal as you will pack debris against the eardrum.\n"
+            "- Treat with veterinary antifungal/antibacterial drops (*Otomax / Pomisol*) prescribed by your vet.\n\n"
+            "**2. Eye Irritations & Infections:**\n"
+            "- **Symptoms:** Redness, squinting, excessive tearing, or yellow/green pus discharge.\n"
+            "- **First Aid:** Gently flush eyes with sterile normal saline to wash away dust and foreign particles.\n"
+            "- *Important Warning:* Never use leftover human eye drops containing corticosteroids without veterinary corneal stain testing — steroids cause blindness if a corneal ulcer is present!"
+        )
+
+    # 13. Diet, Feeding, Safe & Toxic Foods
+    elif any(k in q for k in ["food", "feed", "diet", "nutrition", "what to feed", "curd", "dahi", "milk", "egg", "rice", "meat", "eating", "not eating", "appetite"]):
+        text = (
+            "**Canine & Pet Nutrition Master Guide:**\n\n"
+            "**1. Wholesome, Safe Everyday Foods:**\n"
+            "- **Proteins:** Boiled skinless chicken, boiled eggs (excellent for coat), fresh unsalted paneer, and debone fish.\n"
+            "- **Carbohydrates & Fiber:** Plain boiled white or brown rice, boiled oats, steamed carrots, green beans, and boiled pumpkin (great for digestion).\n"
+            "- **Probiotics:** Plain unsweetened curd/dahi in moderation improves digestion and stool consistency.\n\n"
+            "**2. Foods Strictly Forbidden & Dangerous:**\n"
+            "- **Never feed:** Onions, garlic, chocolates, raisins, grapes, avocado, sugar-free sweets (xylitol), spicy curries, or caffeine.\n"
+            "- **Cooked Bones:** Cooked bones splinter into razor-sharp shards, causing stomach punctures and intestinal blockages.\n"
+            "- **Whole Cow's Milk:** Most adult dogs are lactose intolerant; whole milk causes diarrhea and gas.\n\n"
+            "**3. Loss of Appetite (Anorexia) Care:**\n"
+            "- Warm up meals to release aroma. Mix in warm bone broth or boiled chicken water.\n"
+            "- If an animal refuses food for more than 24-36 hours, investigate for underlying fever, liver, or kidney issues."
+        )
+
+    # 14. Pregnancy, Whelping, Heat Cycle & Newborn Care
+    elif any(k in q for k in ["pregnant", "pregnancy", "whelping", "labor", "delivery", "heat cycle", "giving birth", "pup birth", "newborn", "calving"]):
+        text = (
+            "**Reproduction, Pregnancy & Whelping Care:**\n\n"
+            "**1. Canine Pregnancy Essentials:**\n"
+            "- **Gestation Period:** 58 to 68 days (average 63 days).\n"
+            "- **Diet in Late Pregnancy:** From week 6 onward, transition mother to puppy food to provide extra calcium and protein for developing fetuses.\n\n"
+            "**2. Signs of Impending Labor:**\n"
+            "- Rectal temperature drops below **99.0°F (37.2°C)** approximately 12-24 hours prior to active labor.\n"
+            "- Nesting behavior, restlessness, panting, and refusal of food.\n\n"
+            "**3. Normal Delivery vs Dystocia (Emergency):**\n"
+            "- Pups typically arrive every 30-60 minutes. The mother should tear the amniotic sac and stimulate breathing by licking.\n"
+            "- **Call Emergency Vet if:**\n"
+            "  * Active abdominal contractions last >45 minutes without producing a puppy.\n"
+            "  * Dark green discharge appears before the first puppy is born.\n"
+            "  * More than 2 hours pass between puppies with known pups remaining inside."
+        )
+
+    # 15. Bovine Specific: Mastitis, LSD, Milk Fever, ROP
+    elif (is_cow or is_buffalo) and any(k in q for k in ["mastitis", "thanela", "udder", "teat", "watery milk", "lumpy", "lsd", "milk fever", "placenta", "rop"]):
+        if any(k in q for k in ["mastitis", "thanela", "udder", "teat", "watery milk"]):
             text = (
-                "**URGENT: Feline Urinary Emergency (FLUTD / Blocked Cat):**\n\n"
-                "If a male cat is straining painfully in the litter box, crying, passing only tiny drops or blood, or licking his genitals repeatedly, this is a **life-threatening emergency**.\n\n"
-                "**Action Required:**\n"
-                "- A blocked urethra causes fatal potassium build-up and bladder rupture within 24-48 hours.\n"
-                "- Take your cat to an emergency veterinary clinic immediately for catheterization under sedation.\n"
-                "- Never squeeze or push on a hard distended cat bladder at home!"
+                "**Bovine Mastitis (थनैला रोग) Care & Protocol:**\n\n"
+                "Mastitis is an inflammatory bacterial infection of the mammary gland that damages milk quality and animal welfare.\n\n"
+                "**1. Symptoms:** Hard, swollen, hot udder quarter, clots/flakes in milk, blood, or watery secretion.\n"
+                "**2. Immediate Protocol:**\n"
+                "- Strip out infected milk completely every 2 hours into a separate bucket and dispose safely.\n"
+                "- Apply cold water or ice packs on acute hot swollen quarters to reduce inflammation.\n"
+                "- Administer vet-prescribed intramammary antibiotic infusions (*Cefoperazone / Amoxicillin-Sulbactam*) after thorough teat disinfection.\n"
+                "- Implement post-milking teat dipping in 0.5% Povidone-Iodine to prevent herd transmission."
+            )
+        elif any(k in q for k in ["lumpy", "lsd"]):
+            text = (
+                "**Bovine Lumpy Skin Disease (LSD) Management:**\n\n"
+                "LSD is a viral poxvirus infection transmitted primarily by blood-sucking flies, mosquitoes, and ticks.\n\n"
+                "**1. Symptoms:** High fever (104-106°F), nodular skin lesions (2-5 cm) all over body, swollen lymph nodes, leg edema.\n"
+                "**2. Care Protocol:**\n"
+                "- Isolate affected cattle immediately to stop vector transmission.\n"
+                "- Wash open ruptured nodules with neem water and apply antiseptic fly-repellent spray (*Topicure*).\n"
+                "- Provide antipyretic & anti-inflammatory injections (*Meloxicam-Paracetamol*) for fever relief.\n"
+                "- Ensure soft green fodder and electrolyte-rich drinking water."
+            )
+        elif any(k in q for k in ["milk fever", "downer"]):
+            text = (
+                "**EMERGENCY: Milk Fever (Hypocalcemia in Dairy Cattle):**\n\n"
+                "Occurs within 48-72 hours after calving due to sudden calcium depletion into colostrum.\n\n"
+                "**Key Symptoms:** Sternal recumbency with head turned back into flank (classic S-shaped neck curve), subnormal body temperature, cold ears.\n"
+                "**Action:** Immediate slow intravenous administration of **Calcium Borogluconate (CBG 450 ml)** under veterinary supervision. Keep cow propped in sternal position to prevent bloat."
             )
         else:
             text = (
-                "**Feline Health & Care:**\n\n"
-                "Cats require specialized feline-safe medicine. **CRITICAL WARNING:** Never give cats Paracetamol (Crocin), Ibuprofen, or human pain relievers — even a single dose causes fatal red blood cell destruction.\n\n"
-                "**Core Health Guidelines:**\n"
-                "- **Vomiting & Diarrhea:** Watch out for Feline Panleukopenia (Parvo); requires prompt IV fluids and vet care.\n"
-                "- **Sneezing & Eye Crusting:** Cat Flu (Herpes/Calicivirus); use warm saline steam nebulization and palatable warm wet food.\n"
-                "- **Diet:** Cats are obligate carnivores; feed protein-rich wet food with fresh water to prevent kidney and bladder stones."
+                "**Retention of Placenta (ROP / जेर का रुकना):**\n\n"
+                "The fetal membranes should normally be expelled within 6 to 8 hours post-calving.\n\n"
+                "- **Caution:** Never forcefully pull, tear, or tie heavy stones to the retained placenta — this causes fatal uterine hemorrhage, inversion, or septic metritis.\n"
+                "- Administer uterine ecbolics (*Exapar / Replanta*) and veterinary antibiotic coverage if retained beyond 12 hours."
             )
-    elif any(k in q for k in ["horse", "equine", "mare", "stallion", "colt", "foal"]):
-        if any(k in q for k in ["colic", "rolling", "belly", "pawing"]):
-            text = (
-                "**CRITICAL EQUINE EMERGENCY: Horse Colic:**\n\n"
-                "Colic (severe abdominal pain) is the #1 medical emergency in horses. Warning signs: looking at flank, kicking belly, violent rolling, and absence of gut sounds.\n\n"
-                "**Immediate Actions:**\n"
-                "- Withhold all grain, grass, and hay immediately.\n"
-                "- Walk the horse calmly on a soft surface to prevent violent rolling and twisted gut.\n"
-                "- Call an equine veterinarian immediately for nasogastric stomach tube decompression and IV Flunixin meglumine.\n"
-                "- Check vitals: normal resting heart rate is 28-44 bpm; a pulse over 60 bpm signals severe distress."
-            )
-        else:
-            text = (
-                "**Horse Health & Management:**\n\n"
-                "Equines require meticulous care for digestion, feet, and immunization.\n\n"
-                "**Key Pillars:**\n"
-                "- **Tetanus Prevention:** Puncture wounds and hoof bruises easily turn fatal from Clostridium tetani; maintain annual Tetanus Toxoid vaccination.\n"
-                "- **Strangles (Streptococcus equi):** Isolate horses showing purulent nasal discharge and throat abscesses.\n"
-                "- **Hoof Care:** Clean frogs daily; founder stance (leaning back on heels) indicates Laminitis requiring immediate ice foot-soaking."
-            )
-    elif any(k in q for k in ["donkey", "mule"]):
+
+    # 16. General Livestock (Cow, Buffalo, Goat, Sheep, Poultry, Cat, Rabbit, Horse)
+    elif is_cow or is_buffalo:
         text = (
-            "**Donkey Care & Specifics:**\n\n"
-            "Donkeys show pain and illness differently from horses — a sick donkey often just stands quietly with its head down.\n\n"
-            "**Crucial Rules:**\n"
-            "- **Never starve or rapidly diet a dull donkey:** Sudden fasting triggers Hyperlipaemia (fatal liver fat breakdown); provide continuous forage and call a vet.\n"
-            "- **Hooves:** Donkeys originate from dry climates; wet mud causes painful hoof abscesses and thrush. Clean hooves daily.\n"
-            "- **Dosage Note:** Donkeys metabolize many sedatives and NSAIDs faster than horses; always use donkey-specific veterinary doses."
+            "**Cattle & Buffalo Healthcare & Herd Wellness:**\n\n"
+            "Dairy livestock require proactive nutritional, seasonal, and veterinary management for optimal milk yield and immunity.\n\n"
+            "**Key Pillars of Care:**\n"
+            "- **Balanced Nutrition:** Daily ration of 25-30 kg green fodder, 4-5 kg dry fodder, concentrate feed according to milk yield, and 50g mineral mixture.\n"
+            "- **Clean Unlimited Water:** A lactating cow/buffalo drinks 80 to 100 liters of fresh water daily.\n"
+            "- **Seasonal Shielding:** Summer wallowing and cold showers for buffaloes; dry elevated bedding during monsoon to prevent foot rot.\n"
+            "- **Emergency Helpline:** Contact your local government mobile dispensary or dial **1962** for doorstep livestock ambulance."
         )
-    elif any(k in q for k in ["rabbit", "bunny"]):
+
+    elif is_goat:
         text = (
-            "**Rabbit Health & GI Stasis Alert:**\n\n"
-            "Rabbits have delicate digestive tracts. If a rabbit stops eating or stops producing round fecal pellets for more than 10-12 hours, it is experiencing **GI Stasis** (a life-threatening emergency).\n\n"
-            "**First Aid & Care:**\n"
-            "- Syringe-feed recovery formula (Oxbow Critical Care) with warm water, and provide gentle belly massage.\n"
-            "- **CRITICAL:** Never give oral Amoxicillin or Penicillin to rabbits — it destroys their caecal flora and causes fatal enterotoxemia!\n"
-            "- **Diet:** 80-85% of a rabbit's daily diet must be fresh grass hay (Timothy or Orchard grass) for continuous dental wear and gut motility."
+            "**Goat & Sheep Healthcare (Small Ruminant Management):**\n\n"
+            "Small ruminants are particularly vulnerable to sudden weather shifts, internal parasites, and metabolic disorders.\n\n"
+            "**1. Critical Disease Vigilance:**\n"
+            "- **PPR (Goat Plague):** High fever, mouth sores, foul-smelling diarrhea, and crusty nasal discharge. Strict isolation and symptomatic antibiotics needed.\n"
+            "- **Enterotoxemia (Pulpy Kidney):** Sudden death after overeating lush green fodder or concentrate grain. Vaccinate annually before monsoon.\n"
+            "- **Bottle Jaw (Submandibular Swelling):** Indicates severe blood-sucking worm burden (*Haemonchus contortus*). Administer targeted deworming with Ivermectin/Closantel.\n\n"
+            "**2. Housing & Hygiene:** House goats on slatted wooden or dry elevated floors to prevent foot rot and pneumonia."
         )
-    elif any(k in q for k in ["camel"]):
+
+    elif is_poultry:
         text = (
-            "**Camel Healthcare (Ship of the Desert):**\n\n"
-            "Camels in arid zones are prone to Surra (Tibarsa - Trypanosoma evansi) and Sarcoptic Mange.\n\n"
-            "**Care Highlights:**\n"
-            "- **Surra:** Undulating fever and hump loss; treat promptly with Quinapyramine prosalt (Triquin) or Diminazene.\n"
-            "- **Mange (खाज):** Intense skin crusting; administer subcutaneous Ivermectin (0.2 mg/kg repeated in 14 days) and treat pack saddles.\n"
-            "- Provide clean water and mineral salt licks regularly."
+            "**Poultry & Backyard Chicken Healthcare:**\n\n"
+            "Poultry flocks thrive with strict biosecurity, dry litter bedding, and clean water management.\n\n"
+            "**1. Core Flock Diseases:**\n"
+            "- **Ranikhet Disease (Newcastle):** Twisting of neck (torticollis), greenish diarrhea, gasping. Maintain strict LaSota vaccination schedule.\n"
+            "- **Coccidiosis:** Bloody droppings, huddling, ruffled feathers. Treat flock water with Amprolium.\n"
+            "- **Fowl Pox:** Wart-like nodules on comb and wattles. Apply Betadine; vaccinate at 6-8 weeks.\n\n"
+            "**2. Flock Management:** Keep coop bedding dry to prevent lethal ammonia buildup, and add electrolytes to water during heat waves."
         )
-    elif any(k in q for k in ["elephant"]):
+
+    elif is_cat:
         text = (
-            "**Elephant Medical & Foot Care:**\n\n"
-            "- **Juvenile Alert (EEHV):** Asian elephants under 8 years are susceptible to Elephant Endotheliotropic Herpesvirus. Tongue tip cyanosis (blue/purple) and facial swelling require emergency Famciclovir and plasma transfusions.\n"
-            "- **Foot Health:** Concrete floors cause pododermatitis and sole abscesses; house on natural sand/soil paddocks and perform daily foot checks."
+            "**Feline Health & Emergency Care:**\n\n"
+            "Cats have unique metabolic physiology requiring strict feline-safe medications.\n\n"
+            "**1. Life-Threatening Feline Emergencies:**\n"
+            "- **Urinary Blockage (FLUTD in Male Cats):** Straining in the litter box, crying, passing only droplets or blood. A blocked urethra is fatal within 24-48 hours from potassium toxicity — rush to emergency clinic immediately.\n"
+            "- **Paracetamol (Crocin) Toxicity:** Even a crumb of human paracetamol causes fatal red blood cell destruction in cats!\n\n"
+            "**2. Common Conditions:**\n"
+            "- **Cat Flu (Herpes/Calicivirus):** Eye crusts, sneezing, mouth ulcers. Use warm steam nebulization and palatable warm wet food.\n"
+            "- **Diet:** Cats are obligate carnivores; feed protein-rich wet food with abundant fresh water."
         )
-    elif any(k in q for k in ["pig", "swine", "piglet"]):
+
+    elif is_rabbit:
         text = (
-            "**Pig & Swine Health:**\n\n"
-            "- **Piglet Anemia ('Thumps'):** Newborn piglets on concrete floors lack iron; administer 100-200 mg Iron Dextran IM on day 3 of life.\n"
-            "- **Swine Erysipelas:** Raised diamond-shaped skin plaques with stiff walking respond rapidly to early Procaine Penicillin G.\n"
-            "- **Biosecurity:** Boil all kitchen swill for 30 minutes to prevent Classical Swine Fever."
+            "**Rabbit Health & GI Stasis Protocol:**\n\n"
+            "Rabbits have delicate hindgut fermentation systems requiring continuous fiber intake.\n\n"
+            "**1. Life-Threatening Emergency — GI Stasis:**\n"
+            "- If a rabbit stops eating or stops producing round fecal pellets for more than 10-12 hours, its gut has stopped moving (**GI Stasis**).\n"
+            "- Syringe-feed recovery formula (*Critical Care*) with warm water and provide gentle belly massage.\n"
+            "- **Critical:** Never give oral Amoxicillin or Penicillin to rabbits — it destroys caecal flora and causes fatal enterotoxemia!\n"
+            "- **Diet:** 80-85% of a rabbit's daily diet must be fresh grass hay (Timothy or Orchard grass)."
         )
-    elif any(k in q for k in ["parrot", "pigeon", "bird", "parakeet", "budgie"]):
+
+    elif is_horse:
         text = (
-            "**Avian Health (Parrots & Pigeons):**\n\n"
-            "- **Psittacosis (Parrot Fever):** Green droppings, eye crusts, and lethargy can be caused by Chlamydia psittaci (transmissible to humans). Requires 45-day oral Doxycycline therapy.\n"
-            "- **Pigeon Canker (Trichomoniasis):** Yellow cheesy mouth plaques; treat with Metronidazole or Ronidazole.\n"
-            "- **Pigeon PMV-1 (Torticollis):** Twisted neck and head stargazing; provide dedicated supportive hand-feeding and quiet warmth until neurological recovery."
+            "**Equine Care & Horse Colic Emergency:**\n\n"
+            "**1. Horse Colic (Severe Abdominal Pain):**\n"
+            "- **Signs:** Looking at flank, violent pawing or rolling, lack of gut sounds, sweating.\n"
+            "- **Immediate Action:** Withhold all food immediately. Walk the horse calmly on a soft surface to prevent violent rolling and twisted gut. Call an equine vet immediately for stomach tube decompression.\n\n"
+            "**2. Hoof & Tetanus Care:** Clean hooves daily; maintain annual Tetanus Toxoid vaccination against wound infections."
         )
-    elif any(k in q for k in ["goat", "sheep", "lamb"]):
-        text = (
-            "**Goat & Sheep Healthcare:**\n\n"
-            "Small ruminants are sensitive to changes in weather, damp housing, and parasite load. Common illnesses include PPR, Enterotoxemia, and Coccidiosis.\n\n"
-            "**Care Guidelines:**\n"
-            "- House animals in dry, elevated, well-ventilated sheds.\n"
-            "- Administer deworming rotation before and after the monsoon season.\n"
-            "- Vaccinate against PPR and Enterotoxemia according to the veterinary schedule.\n"
-            "- For scours (diarrhea), isolate the affected animal and administer electrolytes immediately."
-        )
-    elif any(k in q for k in ["chicken", "poultry", "bird", "duck"]):
-        text = (
-            "**Poultry Care & Disease Prevention:**\n\n"
-            "Poultry flocks thrive best with strict biosecurity, dry litter management, and clean drinking water.\n\n"
-            "**Best Practices:**\n"
-            "- Maintain clean, dry coop bedding to prevent Coccidiosis.\n"
-            "- Vaccinate against Ranikhet (Newcastle) Disease and Fowl Pox on schedule.\n"
-            "- Add multivitamins or electrolytes to water during hot weather.\n"
-            "- Quarantine any new or sick birds immediately from the main flock."
-        )
+
+    # 17. Intelligent Dynamic Query Analyzer for Any Open Question
     else:
+        # Determine animal context if any
+        animal_label = "your animal"
+        if is_dog:
+            animal_label = "your dog"
+        elif is_cat:
+            animal_label = "your cat"
+        elif is_cow:
+            animal_label = "your cattle/cow"
+        elif is_goat:
+            animal_label = "your goat/sheep"
+        elif is_poultry:
+            animal_label = "your poultry/bird"
+
+        # Clean subject line
+        query_subject = q.replace("?", "").replace("!", "").strip()
+        if len(query_subject) > 60:
+            query_subject = " ".join(query_subject.split()[:8]) + "..."
+
         text = (
-            "**Animal Wellness & First Aid Advice:**\n\n"
-            "Thank you for reaching out to Know Your Animal! Caring for your animals requires observant monitoring of appetite, energy, hydration, and body temperature.\n\n"
-            "**General Advice:**\n"
-            "- Keep the animal in a calm, sheltered environment with fresh water.\n"
-            "- Never administer human over-the-counter painkillers without veterinary prescription.\n"
-            "- Monitor vitals: breathing rate, gum color (should be healthy pink), and stool consistency.\n\n"
-            "*For specific diagnoses or emergencies, please consult one of our verified veterinary professionals.*"
+            f"**Veterinary Guidance: Addressing \"{query_subject}\"**\n\n"
+            f"Thank you for consulting Know Your Animal regarding {animal_label}. Here is structured clinical guidance for your inquiry:\n\n"
+            "**1. Clinical Overview & Assessment:**\n"
+            f"- When addressing concerns regarding {animal_label}, it is critical to observe vitals: appetite, hydration, activity level, and body temperature.\n"
+            "- Sudden changes in routine, posture, digestive habits, or coat condition often indicate early systemic discomfort or environmental stress.\n\n"
+            "**2. Practical Home Care & First-Line Steps:**\n"
+            "- **Clean Shelter & Rest:** Keep the animal in a well-ventilated, clean, quiet environment with dry bedding.\n"
+            "- **Hydration First:** Ensure continuous access to fresh, clean drinking water. If dehydration is suspected, offer small sips of oral electrolytes.\n"
+            "- **Diet Monitoring:** Provide mild, easily digestible food. Avoid sudden changes in diet or rich, greasy treats.\n\n"
+            "**3. Crucial Safety Precautions:**\n"
+            "- **Do NOT administer human over-the-counter painkillers** (such as Paracetamol, Combiflam, or Ibuprofen) without precise veterinary prescription — they are toxic to pets and cause organ failure.\n"
+            "- Keep a log of symptom onset, stool/urine consistency, and any potential exposure to toxic plants, garbage, or chemicals.\n\n"
+            "**4. When to Seek In-Person Veterinary Care:**\n"
+            "- If symptoms persist for more than 24 hours, or if you observe extreme lethargy, persistent vomiting, pale gums, or breathing distress, contact a verified veterinarian promptly or call the national **1962** animal emergency helpline."
         )
 
     words = text.split(' ')
@@ -1379,19 +1597,19 @@ def generate_fallback_vet_response(messages):
         chunk = " ".join(words[i:i+3]) + " "
         payload = {"choices": [{"delta": {"content": chunk}}]}
         yield f"data: {json.dumps(payload)}\n\n".encode('utf-8')
-        time.sleep(0.02)
+        time.sleep(0.015)
     yield b"data: [DONE]\n\n"
 
 
 def stream_gemini_native(gemini_key, messages, system_prompt):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key={gemini_key}"
+    models = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"]
     contents = []
     for m in messages:
         role = "user" if m.get("role") == "user" else "model"
         text_content = (m.get("content") or "").strip()
         if text_content:
             contents.append({"role": role, "parts": [{"text": text_content}]})
-    
+
     if not contents:
         contents = [{"role": "user", "parts": [{"text": "Hello"}]}]
 
@@ -1400,20 +1618,28 @@ def stream_gemini_native(gemini_key, messages, system_prompt):
         "contents": contents,
         "generationConfig": {
             "temperature": 0.7,
-            "maxOutputTokens": 1000
+            "maxOutputTokens": 1200
         }
     }
 
-    try:
-        req = requests.post(url, json=payload, stream=True, timeout=15)
-        if req.status_code != 200:
-            raise Exception(f"Gemini API returned status {req.status_code}: {req.text[:200]}")
-    except Exception as e:
-        print("Gemini API connection notice, falling back to local assistant:", e)
+    req = None
+    for model_name in models:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:streamGenerateContent?alt=sse&key={gemini_key}"
+        try:
+            r = requests.post(url, json=payload, stream=True, timeout=10)
+            if r.status_code == 200:
+                req = r
+                break
+        except Exception:
+            pass
+
+    if not req:
+        # Fallback to local intelligent veterinary assistant
         for chunk in generate_fallback_vet_response(messages):
             yield chunk
         return
 
+    had_content = False
     for line in req.iter_lines(decode_unicode=True):
         if line:
             if line.startswith("data: "):
@@ -1421,10 +1647,17 @@ def stream_gemini_native(gemini_key, messages, system_prompt):
                     data = json.loads(line[6:])
                     chunk_text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
                     if chunk_text:
+                        had_content = True
                         openai_payload = {"choices": [{"delta": {"content": chunk_text}}]}
                         yield f"data: {json.dumps(openai_payload)}\n\n".encode('utf-8')
                 except Exception:
                     pass
+
+    if not had_content:
+        for chunk in generate_fallback_vet_response(messages):
+            yield chunk
+        return
+
     yield b"data: [DONE]\n\n"
 
 
@@ -1447,17 +1680,18 @@ def chat_ai():
     if not messages:
         return jsonify({"error": "messages array is required"}), 400
 
-    gemini_key = os.environ.get('GEMINI_API_KEY')
+    gemini_key = os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_API_KEY')
     SYSTEM_PROMPT = """You are "Know Your Animal" — a friendly, compassionate, and highly knowledgeable veterinary assistant in India. You help farmers, pet owners, animal caretakers, and rescuers.
 
 Your expertise includes:
-- Common symptoms, diagnosis, and care for cows, buffaloes, dogs, cats, goats, sheep, chickens, horses, rabbits, and birds
+- Common symptoms, diagnosis, behavior, and care for cows, buffaloes, dogs, cats, goats, sheep, chickens, horses, rabbits, and birds
+- Specific behavioral solutions (e.g. coprophagia / poop eating, biting, barking, training)
 - Emergency first aid guidance (fever, bloat, poisoning, wounds, heat stroke, choking, dehydration)
 - Disease prevention, vaccination schedules (DHPPi, Rabies, FMD, HS, BQ), and biosecurity
 - Animal nutrition, feeding guidelines, and herd wellness
 
 Guidelines:
-- When a user greets or says they have questions, welcome them warmly and invite them to describe their animal and situation.
+- Always answer the user's EXACT question directly and thoroughly first.
 - Keep answers clear, structured (use bullet points and bold text), and practical.
 - Always recommend consulting a verified vet or calling national ambulance 1962 for life-threatening emergencies.
 - Be supportive, empathetic, and culturally tuned to Indian rural and urban pet care."""
@@ -1468,7 +1702,7 @@ Guidelines:
         except Exception as e:
             print("Gemini API streaming notice, using local intelligent assistant:", e)
 
-    # Local intelligent veterinary assistant fallback (handles offline mode)
+    # Local intelligent veterinary assistant fallback (handles offline mode & missing keys)
     return Response(generate_fallback_vet_response(messages), mimetype='text/event-stream')
 
 
