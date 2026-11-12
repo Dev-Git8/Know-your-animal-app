@@ -48,6 +48,32 @@ exports.getPatients = async (req, res) => {
     }
 };
 
+// ── Get Only Assigned Patients (users who have records with this doctor) ──
+exports.getUsers = async (req, res) => {
+    try {
+        const records = await PatientRecord.find({ doctorId: req.user._id });
+        const patientUserIds = [...new Set(records.map(r => r.userId?.toString()).filter(Boolean))];
+
+        if (patientUserIds.length === 0) {
+            return res.status(200).json([]);
+        }
+
+        const User = require("../models/user.model");
+        const users = await User.find({ _id: { $in: patientUserIds }, role: "user" });
+        const result = [];
+        for (const u of users) {
+            const uObj = u.toObject();
+            const prof = await UserProfile.findOne({ userId: u._id });
+            if (prof) uObj.profile = prof;
+            result.push(uObj);
+        }
+        res.status(200).json(result);
+    } catch (err) {
+        console.error("Get doctor users error:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 // ── Add Treatment Note ─────────────────────────────────────────────
 exports.addTreatmentNote = async (req, res) => {
     try {

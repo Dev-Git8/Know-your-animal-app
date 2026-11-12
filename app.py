@@ -1016,19 +1016,42 @@ def update_appointment(current_user, appt_id):
         logger.error(f"Error updating appointment: {e}")
         return jsonify({'message': f'Failed to update appointment: {str(e)}'}), 500
 
-# Doctor gets list of all registered users (to browse/select for appointments)
+# Doctor gets list of ONLY their own patients (users who booked with this doctor or have patient records)
 @app.route('/api/doctor/users', methods=['GET'])
 @token_required
 def doctor_get_users(current_user):
     if current_user.role != 'doctor':
         return jsonify({'message': 'Not authorized'}), 403
-    users = User.query.filter_by(role='user').all()
+    
+    prof = DoctorProfile.query.filter_by(user_id=current_user.id).first()
+    patient_ids = set()
+
+    # 1. Appointments where doctor_id matches DoctorProfile.id or User.id
+    doc_ids_to_check = [current_user.id]
+    if prof:
+        doc_ids_to_check.append(prof.id)
+
+    appts = Appointment.query.filter(Appointment.doctor_id.in_(doc_ids_to_check)).all()
+    for a in appts:
+        if a.user_id:
+            patient_ids.add(a.user_id)
+
+    # 2. Patient records where doctor_id matches
+    records = PatientRecord.query.filter(PatientRecord.doctor_id.in_(doc_ids_to_check)).all()
+    for r in records:
+        if r.user_id and str(r.user_id).isdigit():
+            patient_ids.add(int(r.user_id))
+
+    if not patient_ids:
+        return jsonify([]), 200
+
+    users = User.query.filter(User.id.in_(list(patient_ids)), User.role == 'user').all()
     result = []
     for u in users:
         u_dict = u.to_dict()
-        prof = UserProfile.query.filter_by(user_id=u.id).first()
-        if prof:
-            u_dict['profile'] = prof.to_dict()
+        prof_entry = UserProfile.query.filter_by(user_id=u.id).first()
+        if prof_entry:
+            u_dict['profile'] = prof_entry.to_dict()
         result.append(u_dict)
     return jsonify(result), 200
 

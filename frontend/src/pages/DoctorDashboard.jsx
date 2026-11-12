@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     Stethoscope, Users, Calendar, Clipboard, LogOut,
@@ -160,10 +160,19 @@ const DoctorDashboard = () => {
 
     const filteredAppts = apptFilter === "all" ? appointments : appointments.filter(a => a.status === apptFilter);
 
+    const myPatients = useMemo(() => {
+        // Collect IDs of users who have booked consultations with this doctor
+        const patientUserIds = new Set(
+            appointments.map(a => String(a.userId?._id || a.userId)).filter(Boolean)
+        );
+        // Only return users who actually have consultations with this doctor
+        return users.filter(u => patientUserIds.has(String(u._id)));
+    }, [users, appointments]);
+
     const tabs = [
         { id: "profile", label: "My Profile", icon: <UserIcon className="h-4 w-4" /> },
         { id: "appointments", label: "Appointments", icon: <Calendar className="h-4 w-4" />, count: appointments.filter(a => a.status === "pending").length },
-        { id: "users", label: "Patients", icon: <Users className="h-4 w-4" /> },
+        { id: "users", label: "My Patients", icon: <Users className="h-4 w-4" />, count: myPatients.length },
     ];
 
     if (loading) return (
@@ -394,38 +403,44 @@ const DoctorDashboard = () => {
                 {activeTab === "users" && (
                     <div className="space-y-3">
                         <div className="flex items-center justify-between mb-2">
-                            <p className="text-sm font-black text-slate-500 uppercase tracking-widest">{users.length} Registered Users</p>
+                            <p className="text-sm font-black text-slate-500 uppercase tracking-widest">{myPatients.length} Assigned Patients</p>
                         </div>
-                        {users.length === 0 ? (
+                        {myPatients.length === 0 ? (
                             <div className="py-16 text-center bg-white rounded-[2rem] border border-dashed border-slate-200">
                                 <Users className="h-10 w-10 text-slate-300 mx-auto mb-3" />
-                                <p className="text-slate-400 font-bold">No users registered yet</p>
+                                <p className="text-slate-600 font-bold">No assigned patients yet</p>
+                                <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                                    Only animal caretakers who have booked consultations with you will appear in your clinical patient roster.
+                                </p>
                             </div>
-                        ) : users.map(u => (
-                            <div key={u._id} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-xl font-black text-primary shrink-0">
-                                    {u.username?.charAt(0).toUpperCase()}
+                        ) : myPatients.map(u => {
+                            const userAppts = appointments.filter(a => String(a.userId?._id || a.userId) === String(u._id));
+                            return (
+                                <div key={u._id} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-xl font-black text-indigo-600 shrink-0">
+                                        {u.username?.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-black text-slate-900 truncate">{u.username}</p>
+                                        <p className="text-sm text-slate-400 truncate">{u.email}</p>
+                                        {u.profile?.location && <p className="text-xs text-slate-400 mt-0.5 truncate">📍 {u.profile.location}</p>}
+                                        {u.profile?.pets && u.profile.pets.length > 0 && (
+                                            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                                {u.profile.pets.map((pet, i) => (
+                                                    <span key={i} className="flex items-center gap-1 text-[10px] font-black bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">
+                                                        <PawPrint className="h-2.5 w-2.5" />{typeof pet === "string" ? pet : pet.name}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col items-end gap-1 shrink-0">
+                                        <span className="text-[10px] font-black bg-emerald-50 border border-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded-full">Patient</span>
+                                        <span className="text-xs font-bold text-slate-500">{userAppts.length} consultation{userAppts.length === 1 ? "" : "s"}</span>
+                                    </div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-black text-slate-900 truncate">{u.username}</p>
-                                    <p className="text-sm text-slate-400 truncate">{u.email}</p>
-                                    {u.profile?.location && <p className="text-xs text-slate-300 mt-0.5 truncate">📍 {u.profile.location}</p>}
-                                    {u.profile?.pets && u.profile.pets.length > 0 && (
-                                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                                            {u.profile.pets.map((pet, i) => (
-                                                <span key={i} className="flex items-center gap-1 text-[10px] font-black bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">
-                                                    <PawPrint className="h-2.5 w-2.5" />{typeof pet === "string" ? pet : pet.name}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex flex-col items-end gap-2 shrink-0">
-                                    <span className="text-[10px] font-black bg-green-100 text-green-600 px-2 py-1 rounded-full">User</span>
-                                    <span className="text-xs text-slate-300">{appointments.filter(a => a.userId?._id === String(u._id)).length} appts</span>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>

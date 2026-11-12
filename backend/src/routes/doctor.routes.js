@@ -9,6 +9,7 @@ router.use(doctorProtect);
 router.get("/profile", doctorController.getProfile);
 router.put("/profile", doctorController.updateProfile);
 router.get("/patients", doctorController.getPatients);
+router.get("/users", doctorController.getUsers);
 router.post("/treatment-notes", doctorController.addTreatmentNote);
 
 module.exports = router;
