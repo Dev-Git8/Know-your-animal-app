@@ -67,7 +67,8 @@
 - **Frontend**: React 18, Vite, Tailwind CSS, Lucide Icons, Framer Motion, Radix UI.
 - **Backend API**: Python 3.10+, Flask, Flask-SQLAlchemy, Flask-CORS, PyJWT, Werkzeug.
 - **Alternative Backend**: Node.js, Express, MongoDB Atlas, Mongoose (in `backend/`).
-- **Database**: SQLite (`instance/app.db`) with automatic auto-seeder, or MongoDB Atlas.
+- **Database**: PostgreSQL (Neon, Supabase, Render, Railway, AWS RDS, Localhost) with SQLite fallback.
+- **Database Utilities**: Auto-table creation, PostgreSQL connection tester (`test_db_connection.py`), and SQLite-to-PostgreSQL migrator (`migrate_sqlite_to_postgres.py`).
 - **Payments**: Razorpay Official Node/Python SDK & Web Checkout.
 - **AI / LLM**: Google Gemini API (`gemini-2.5-flash`).
 
@@ -77,11 +78,13 @@
 
 ```
 Know-your-animal-app/
-├── app.py                      # Core Python Flask API & database models
-├── RUN_APP.bat                 # 1-Click launcher for Windows
-├── requirements.txt            # Python dependencies
-├── seed_comprehensive_animals.py # Database seeder (17 animals, 61 diseases)
-├── instance/app.db             # Pre-seeded SQLite database
+├── app.py                         # Core Python Flask API & database models
+├── test_db_connection.py          # PostgreSQL / SQLite connection diagnostic tool
+├── migrate_sqlite_to_postgres.py  # 1-Click SQLite to PostgreSQL data migrator
+├── RUN_APP.bat                    # 1-Click launcher for Windows
+├── requirements.txt               # Python dependencies (including psycopg2-binary)
+├── seed_comprehensive_animals.py  # Database seeder (17 animals, 61 diseases)
+├── instance/app.db                # SQLite database (development default)
 ├── backend/                    # Express + MongoDB service
 │   ├── src/
 │   │   ├── controllers/

@@ -6,6 +6,11 @@ import ChatSidebar from "@/components/chat/ChatSidebar";
 import { useChatHistory } from "@/hooks/useChatHistory";
 
 const getChatUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl) {
+    const clean = envUrl.replace(/\/+$/, "");
+    return clean.endsWith("/api") ? `${clean}/chat` : `${clean}/api/chat`;
+  }
   return "/api/chat";
 };
 

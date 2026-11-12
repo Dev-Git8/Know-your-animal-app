@@ -1,6 +1,16 @@
 import axios from "axios";
 
 const getBaseURL = () => {
+    if (typeof window !== "undefined") {
+        const host = window.location.hostname;
+        if (host.includes("vercel.app") || host === "localhost" || host === "127.0.0.1") {
+            return "/api";
+        }
+    }
+    const envUrl = import.meta.env.VITE_API_URL;
+    if (envUrl) {
+        return envUrl.replace(/\/+$/, "");
+    }
     return "/api";
 };
 
@@ -14,9 +24,12 @@ const api = axios.create({
 
 // Automatically attach Authorization Bearer token to every outgoing request
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token") || localStorage.getItem("adminToken");
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+    const rawToken = localStorage.getItem("token") || localStorage.getItem("adminToken");
+    if (rawToken && rawToken !== "null" && rawToken !== "undefined") {
+        const token = rawToken.replace(/^["']|["']$/g, "").trim();
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
     }
     return config;
 });
